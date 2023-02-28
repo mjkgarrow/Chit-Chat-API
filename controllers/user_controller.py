@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from flask_jwt_extended import get_jwt_identity, jwt_required, create_access_token
 from flask import Blueprint, abort, request, jsonify
 from main import db, bcrypt
@@ -11,12 +11,19 @@ users = Blueprint("users", __name__, url_prefix="/users")
 
 @users.get("/")
 def get_users():
+    """GETS USERS"""
+
+    # Query database for all Users
     users_list = db.session.execute(db.select(User)).scalars()
+
+    # Return JSON of Users
     return jsonify(users_schema.dump(users_list))
 
 
 @users.post("/")
 def create_user():
+    """CREATES USER"""
+
     # Load data from request body into a user schema
     user_data = user_schema.load(request.json)
 
@@ -38,3 +45,49 @@ def create_user():
     token = create_access_token(identity=str(user.id), expires_delta=False)
 
     return jsonify({"user": user.username, "token": token})
+
+
+@users.put("/")
+@jwt_required()
+def update_user():
+    """UPDATES USER"""
+
+    # Find user in the db
+    user = db.session.get(User, get_jwt_identity())
+
+    # If user not in database, return error
+    if not user:
+        return abort(401, description="Invalid user")
+
+    # Load data from request
+    user_data = user_schema.load(request.json)
+
+    # Fill out new director object
+    user.username = user_data["username"]
+    user.password = bcrypt.generate_password_hash(
+        user_data["password"]).decode("utf-8")
+    user.updated_at = datetime.utcnow()
+
+    # Add to the database and commit
+    db.session.commit()
+
+    return jsonify(user_schema.dump(user))
+
+
+@users.delete("/")
+@jwt_required()
+def delete_user():
+    """DELETES USER"""
+
+    # Get current user from database using JWT)
+    user = db.session.get(User, get_jwt_identity())
+
+    # If user doesn't exist, abort
+    if not user:
+        return abort(400, description="Username already registered")
+
+    # Delete and commit user to database
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify(user_schema.dump(user))
