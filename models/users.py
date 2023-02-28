@@ -9,9 +9,6 @@ class User(db.Model):
     password = db.Column(db.String(60), nullable=False)
     created_at = db.Column(db.DateTime(), default=datetime.utcnow)
     updated_at = db.Column(db.DateTime(), default=datetime.utcnow)
-    # chats = db.relationship("Member",
-    #                         backref="user",
-    #                         cascade="all, delete")
-
-    def __repr__(self):
-        return f"<User: {self.username}>"
+    chats = db.relationship("Member",
+                            backref="user",
+                            cascade="all, delete")
