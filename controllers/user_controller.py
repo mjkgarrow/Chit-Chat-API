@@ -47,6 +47,28 @@ def create_user():
     return jsonify({"user": user.username, "token": token})
 
 
+@users.post("/signin")
+def signin_user():
+    """CREATES USER"""
+
+    # Load data from request body into a user schema
+    user_data = user_schema.load(request.json)
+
+    # Find user in database
+    user = db.session.scalars(db.select(User).filter_by(
+        username=user_data["username"]).limit(1)).first()
+
+    # Check if user exists and password matches
+    if not user or not bcrypt.check_password_hash(user.password,
+                                                  user_data["password"]):
+        return abort(401, description="Incorrect username or password")
+
+    # Generate new token
+    token = create_access_token(identity=str(user.id), expires_delta=False)
+
+    return jsonify({"user": user.username, "token": token})
+
+
 @users.put("/")
 @jwt_required()
 def update_user():
