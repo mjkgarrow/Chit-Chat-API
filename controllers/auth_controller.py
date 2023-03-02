@@ -21,13 +21,13 @@ def create_user():
             username=user_data["username"]).limit(1)).first():
         return abort(400, description="Username already registered")
 
-    # Create a user object to load into database
+    # Create a user object to load into db
     user = User(
         username=user_data["username"],
         password=bcrypt.generate_password_hash(
             user_data["password"]).decode("utf-8"))
 
-    # Add and commit user to database
+    # Add and commit user to db
     db.session.add(user)
     db.session.commit()
 
@@ -44,7 +44,7 @@ def signin_user():
     # Load data from request body into a user schema
     user_data = user_schema.load(request.json)
 
-    # Find user in database
+    # Find user in db
     user = db.session.scalars(db.select(User).filter_by(
         username=user_data["username"]).limit(1)).first()
 
@@ -68,7 +68,7 @@ def update_user():
     # Find user in the db
     user = db.session.get(User, get_jwt_identity())
 
-    # If user not in database, return error
+    # If user not in db, return error
     if not user:
         return abort(401, description="Invalid user")
 
@@ -81,7 +81,7 @@ def update_user():
         user_data["password"]).decode("utf-8")
     user.updated_at = datetime.utcnow()
 
-    # Add to the database and commit
+    # Commit change to db
     db.session.commit()
 
     return jsonify(user_schema.dump(user))
@@ -92,14 +92,14 @@ def update_user():
 def delete_user():
     """DELETES USER"""
 
-    # Get current user from database using JWT)
+    # Get current user from db using JWT)
     user = db.session.get(User, get_jwt_identity())
 
     # If user doesn't exist, abort
     if not user:
         return abort(400, description="Username already registered")
 
-    # Delete and commit user to database
+    # Delete and commit user to db
     db.session.delete(user)
     db.session.commit()
 

@@ -18,3 +18,20 @@ def get_users():
 
     # Return JSON of Users
     return jsonify(users_schema.dump(users_list))
+
+
+# @users.get("/<int:user_id>")
+# @jwt_required()
+# def get_user_chats(user_id):
+#     """GETS LIST OF CHATS USER IS MEMBER OF"""
+
+#     # Find user in the db
+#     user = db.session.get(User, get_jwt_identity())
+
+#     # If user not in database
+#     # or user_id doesn't match current user, return error
+#     if not user or user.id != user_id:
+#         return abort(401, description="Invalid user")
+
+
+#     return jsonify(user_schema.dump(users_list))
