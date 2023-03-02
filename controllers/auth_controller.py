@@ -32,7 +32,7 @@ def create_user():
     db.session.commit()
 
     token = create_access_token(identity=str(user.id),
-                                expires_delta=timedelta(days=1))
+                                expires_delta=timedelta(days=100))
 
     return jsonify({"user": user.username, "token": token})
 
@@ -55,7 +55,7 @@ def signin_user():
 
     # Generate new token
     token = create_access_token(identity=str(user.id),
-                                expires_delta=timedelta(days=1))
+                                expires_delta=timedelta(days=100))
 
     return jsonify({"user": user.username, "token": token})
 
