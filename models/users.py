@@ -20,6 +20,6 @@ class User(db.Model):
 
     # Back-relationship with member table, which populates the chats
     # Member table record is deleted when User is deleted
-    chats = db.relationship("Member",
-                            backref="user",
-                            cascade="all, delete")
+    # chats = db.relationship("Member",
+    #                         backref="user",
+    #                         cascade="all, delete")
