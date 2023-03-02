@@ -57,4 +57,4 @@ def create_chat():
     db.session.add(members)
     db.session.commit()
 
-    return jsonify(chat=chat_schema.dump(chat), members_list=member_schema.dump(members))
+    return jsonify(chat_schema.dump(chat))

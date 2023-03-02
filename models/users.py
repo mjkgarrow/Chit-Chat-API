@@ -18,8 +18,7 @@ class User(db.Model):
     # Date user was updated
     updated_at = db.Column(db.DateTime(), default=datetime.utcnow)
 
-    # Back-relationship with member table, which populates the chats
-    # Member table record is deleted when User is deleted
-    # chats = db.relationship("Member",
-    #                         backref="user",
-    #                         cascade="all, delete")
+    # Back-relationship with the Members table
+    members = db.relationship("Member",
+                              backref="member",
+                              cascade="all, delete")

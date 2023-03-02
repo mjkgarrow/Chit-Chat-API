@@ -8,10 +8,16 @@ class ChatSchema(ma.Schema):
         fields = ["id",
                   "chat_name",
                   "chat_passkey",
-                  "created_at"]
-        # load_only = ["password",]
+                  "created_at",
+                  "members",
+                  "messages"]
+        load_only = ["chat_passkey",]
 
-    # messages = fields.List(fields.Nested("MessageSchema", only=("created_date",)))
+    members = fields.List(fields.Nested("MemberSchema",
+                                        only=("member",)))
+    messages = fields.List(fields.Nested("MessageSchema",
+                                         only=("message",
+                                               "created_date",)))
 
 
 chat_schema = ChatSchema()

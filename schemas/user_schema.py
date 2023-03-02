@@ -5,10 +5,16 @@ from main import ma
 class UserSchema(ma.Schema):
     class Meta:
         ordered = True
-        fields = ["id", "username", "password", "updated_at", "created_at"]
+        fields = ["id",
+                  "username",
+                  "password",
+                  "updated_at",
+                  "created_at",
+                  "members"]
         load_only = ["password",]
 
-    # chats = fields.List(fields.Nested("ChatSchema", only=("name",)))
+    members = fields.List(fields.Nested("MemberSchema",
+                                        only=("chat",)))
 
 
 user_schema = UserSchema()

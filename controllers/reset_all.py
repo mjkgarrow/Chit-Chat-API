@@ -15,26 +15,26 @@ def reset_server():
 
     db.create_all()
 
-    user1 = User(username="Matt",
-                 password=bcrypt.generate_password_hash("1234").decode('utf-8'))
+    # user1 = User(username="Matt",
+    #              password=bcrypt.generate_password_hash("1234").decode('utf-8'))
 
-    user2 = User(username="Beth",
-                 password=bcrypt.generate_password_hash("5678").decode('utf-8'))
+    # user2 = User(username="Beth",
+    #              password=bcrypt.generate_password_hash("5678").decode('utf-8'))
 
-    db.session.add(user1)
-    db.session.add(user2)
-    db.session.commit()
+    # db.session.add(user1)
+    # db.session.add(user2)
+    # db.session.commit()
 
-    chat1 = Chat(chat_name="Chat1",
-                 chat_passkey="1234")
+    # chat1 = Chat(chat_name="Chat1",
+    #              chat_passkey="1234")
 
-    db.session.add(chat1)
-    db.session.commit()
+    # db.session.add(chat1)
+    # db.session.commit()
 
-    member1 = Member(chat_id=chat1.id,
-                     user_id=user1.id)
+    # member1 = Member(chat=chat1,
+    #                  member=user1)
 
-    db.session.add(member1)
-    db.session.commit()
+    # db.session.add(member1)
+    # db.session.commit()
 
     return jsonify(message="Tables dropped, created and seeded")
