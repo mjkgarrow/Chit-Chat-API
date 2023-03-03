@@ -33,13 +33,10 @@ def create_chat():
 
     # If user not in db, return error
     if not user:
-        print("this")
         return abort(401, description="Invalid user")
 
     # Load data from request body into a chat schema
     chat_data = chat_schema.load(request.json)
-
-    print(chat_data)
 
     # Create Chat instance, populate with request body data
     chat = Chat(chat_name=chat_data["chat_name"],
@@ -55,6 +52,70 @@ def create_chat():
 
     # Add member to db
     db.session.add(members)
+    db.session.commit()
+
+    return jsonify(chat_schema.dump(chat))
+
+
+@chats.put("/<int:chat_id>")
+@jwt_required()
+def update_chat(chat_id):
+    """UPDATES A CHAT NAME"""
+
+    # Find verified user in db
+    user = db.session.get(User, get_jwt_identity())
+
+    # Find chat in db
+    chat = db.session.get(Chat, chat_id)
+
+    # If user or chat not in db, return error
+    if not user or not chat:
+        return abort(401, description="Invalid user or chat doesn't exist")
+
+    # Check if user is a member of chat
+    chat_member = db.session.execute(
+        db.select(Member).filter_by(chat_id=chat.id, user_id=user.id)).scalar()
+
+    if not chat_member:
+        return abort(401, description="Invalid user")
+
+    # Load data from request body into a chat schema
+    chat_data = chat_schema.load(request.json)
+
+    # Create Chat instance, populate with request body data
+    chat.chat_name = chat_data["chat_name"]
+
+    # Add chat to db
+    # db.session.add(chat)
+    db.session.commit()
+
+    return jsonify(chat_schema.dump(chat))
+
+
+@chats.delete("/<int:chat_id>")
+@jwt_required()
+def delete_chat(chat_id):
+    """UPDATES A CHAT NAME"""
+
+    # Find verified user in db
+    user = db.session.get(User, get_jwt_identity())
+
+    # Find chat in db
+    chat = db.session.get(Chat, chat_id)
+
+    # If user or chat not in db, return error
+    if not user or not chat:
+        return abort(401, description="Invalid user or chat doesn't exist")
+
+    # Check if user is a member of chat
+    chat_member = db.session.execute(
+        db.select(Member).filter_by(chat_id=chat.id, user_id=user.id)).scalar()
+
+    if not chat_member:
+        return abort(401, description="Invalid user")
+
+    # Add chat to db
+    db.session.delete(chat)
     db.session.commit()
 
     return jsonify(chat_schema.dump(chat))
