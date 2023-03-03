@@ -10,7 +10,7 @@ class Chat(db.Model):
     chat_name = db.Column(db.String(20), nullable=False)
 
     # Secret passkey for chatroom
-    chat_passkey = db.Column(db.String(), nullable=False)
+    chat_passkey = db.Column(db.String(), nullable=True)
 
     # Date chatroom was created
     created_at = db.Column(db.DateTime(), default=datetime.utcnow)
