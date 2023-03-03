@@ -151,10 +151,11 @@ def join_chat(chat_id):
     if chat.chat_passkey != chat_data["chat_passkey"]:
         return abort(401, description="Invalid user or passkey")
 
+    # Create a new member instance
     member = Member(chat=chat,
                     member=user)
 
-    # Add chat to db
+    # Add member to db
     db.session.add(member)
     db.session.commit()
 
