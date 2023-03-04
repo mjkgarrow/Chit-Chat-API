@@ -16,16 +16,15 @@ class Chat(db.Model, dict):
     # Date chatroom was created
     created_at = db.Column(db.DateTime(), default=datetime.utcnow)
 
-    # Back-relationship with the Members table
-    members = db.relationship("User",
-                              secondary=member_association,
-                              back_populates="chats",
-                              overlaps="chat,users")
+    # Relationship with the Users table, back populates
+    users = db.relationship("User",
+                            secondary=member_association,
+                            back_populates="chats")
 
     def asdict(self):
         return {"id": self.id,
                 "chat_name": self.chat_name,
-                "members": self.members}
+                "users": self.users}
 
     def __repr__(self):
         return f"<'id': {self.id},'chat_name': {self.chat_name}>"

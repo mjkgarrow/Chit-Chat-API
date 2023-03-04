@@ -9,11 +9,11 @@ class ChatSchema(ma.Schema):
                   "chat_name",
                   "chat_passkey",
                   "created_at",
-                  "members")
+                  "users")
         load_only = ("chat_passkey", "created_at")
 
-    members = fields.List(fields.Nested("UserSchema",
-                                        only=("id", "username",)))
+    users = fields.List(fields.Nested("UserSchema",
+                                      only=("id", "username",)))
 
 
 chat_schema = ChatSchema()

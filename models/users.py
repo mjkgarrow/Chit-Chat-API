@@ -22,9 +22,8 @@ class User(db.Model):
     # Back-relationship with the Members table
     chats = db.relationship("Chat",
                             secondary=member_association,
-                            back_populates="members",
-                            cascade="all, delete",
-                            overlaps="chat,users")
+                            back_populates="users",
+                            cascade="all, delete")
 
     def __repr__(self):
         return str({"id": self.id,
