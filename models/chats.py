@@ -27,4 +27,4 @@ class Chat(db.Model, dict):
                 "users": self.users}
 
     def __repr__(self):
-        return f"<'id': {self.id},'chat_name': {self.chat_name}>"
+        return f"<id: {self.id}, chat_name: {self.chat_name}>"

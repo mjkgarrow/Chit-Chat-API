@@ -65,7 +65,7 @@ def signin_user():
 def update_user():
     """UPDATES USER"""
 
-    # Find user in the db
+    # Get current user from db using JWT
     user = db.session.get(User, get_jwt_identity())
 
     # If user not in db, return error
@@ -92,7 +92,7 @@ def update_user():
 def delete_user():
     """DELETES USER"""
 
-    # Get current user from db using JWT)
+    # Get current user from db using JWT
     user = db.session.get(User, get_jwt_identity())
 
     # If user doesn't exist, abort
