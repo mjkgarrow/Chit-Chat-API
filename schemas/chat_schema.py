@@ -19,7 +19,8 @@ class ChatSchema(ma.Schema):
     # Converts list of user dicts into list of username strings
     @post_dump
     def deserialise_nested_dict(self, data, **kwargs):
-        data["users"] = [data["username"] for data in data["users"]]
+        if "users" in data.keys():
+            data["users"] = [data["username"] for data in data["users"]]
         return data
 
 

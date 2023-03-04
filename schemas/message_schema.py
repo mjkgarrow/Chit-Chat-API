@@ -24,7 +24,8 @@ class MessageSchema(ma.Schema):
     # Extracts value from nested dict and returns it
     @post_dump
     def deserialise_nested_dict(self, data, **kwargs):
-        data['user'] = data['user']["username"]
+        if "user" in data.keys():
+            data['user'] = data['user']["username"]
         return data
 
 
