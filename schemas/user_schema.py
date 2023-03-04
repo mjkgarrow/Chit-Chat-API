@@ -1,20 +1,29 @@
 from marshmallow import fields
 from main import ma
+# from models.users import User
 
 
+# class UserSchema(ma.SQLAlchemyAutoSchema):
+#     class Meta:
+#         ordered = True
+#         model = User
+#         load_only = ["password", "updated_at", "created_at",]
+
+#     chats = fields.List(fields.Nested("ChatSchema",
+#                                       only=("chat_name",)))
 class UserSchema(ma.Schema):
     class Meta:
         ordered = True
-        fields = ["id",
+        fields = ("id",
                   "username",
                   "password",
                   "updated_at",
                   "created_at",
-                  "members"]
-        load_only = ["password",]
+                  "chats")
+        load_only = ["password", "updated_at", "created_at",]
 
-    members = fields.List(fields.Nested("MemberSchema",
-                                        only=("chat",)))
+    chats = fields.List(fields.Nested("ChatSchema",
+                                      only=("id", "chat_name",)))
 
 
 user_schema = UserSchema()

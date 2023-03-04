@@ -1,5 +1,6 @@
 from datetime import datetime
 from main import db
+from models.members import member_association
 
 
 class User(db.Model):
@@ -19,6 +20,17 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime(), default=datetime.utcnow)
 
     # Back-relationship with the Members table
-    members = db.relationship("Member",
-                              backref="member",
-                              cascade="all, delete")
+    chats = db.relationship("Chat",
+                            secondary=member_association,
+                            back_populates="members",
+                            cascade="all, delete",
+                            overlaps="chat,users")
+
+    def __repr__(self):
+        return str({"id": self.id,
+                    "username": self.username})
+
+    def asdict(self):
+        return {"id": self.id,
+                "username": self.username,
+                "chats": self.chats}

@@ -5,19 +5,15 @@ from main import ma
 class ChatSchema(ma.Schema):
     class Meta:
         ordered = True
-        fields = ["id",
+        fields = ("id",
                   "chat_name",
                   "chat_passkey",
                   "created_at",
-                  "members",
-                  "messages"]
-        load_only = ["chat_passkey",]
+                  "members")
+        load_only = ("chat_passkey", "created_at")
 
-    members = fields.List(fields.Nested("MemberSchema",
-                                        only=("member",)))
-    messages = fields.List(fields.Nested("MessageSchema",
-                                         only=("message",
-                                               "created_date",)))
+    members = fields.List(fields.Nested("UserSchema",
+                                        only=("id", "username",)))
 
 
 chat_schema = ChatSchema()
