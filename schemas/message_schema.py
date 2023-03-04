@@ -1,4 +1,4 @@
-from marshmallow import fields
+from marshmallow import fields, post_dump
 from main import ma
 
 
@@ -19,6 +19,13 @@ class MessageSchema(ma.Schema):
 
     user = fields.Nested("UserSchema",
                          only=("username",))
+
+    # Code from: https://stackoverflow.com/questions/44162315/convert-object-when-serializing-it
+    # Extracts value from nested dict and returns it
+    @post_dump
+    def deserialise_nested_dict(self, data, **kwargs):
+        data['user'] = data['user']["username"]
+        return data
 
 
 message_schema = MessageSchema()
