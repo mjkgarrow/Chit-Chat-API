@@ -10,12 +10,25 @@ class Message(db.Model):
     message = db.Column(db.String(), nullable=False)
 
     # Member ID of the user that sent the message
-    member_id = db.Column(db.Integer(),
-                          db.ForeignKey("members.id"),
-                          nullable=False)
+    chat_id = db.Column(db.Integer(),
+                        db.ForeignKey("chats.id"),
+                        nullable=False)
+
+    # Member ID of the user that sent the message
+    user_id = db.Column(db.Integer(),
+                        db.ForeignKey("users.id"),
+                        nullable=False)
 
     # Date message was created
     created_at = db.Column(db.DateTime(), default=datetime.utcnow)
 
     # Date message was edited
     edited_at = db.Column(db.DateTime(), default=datetime.utcnow)
+
+    def asdict(self):
+        return {"id": self.id,
+                "message": self.message,
+                "user": self.user_id}
+
+    def __repr__(self):
+        return f"<id: {self.id}, message: {self.message}, user: {self.user_id}>"

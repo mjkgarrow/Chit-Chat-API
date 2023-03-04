@@ -25,6 +25,11 @@ class User(db.Model):
                             back_populates="users",
                             cascade="all, delete")
 
+    # Relationship with Messages table
+    messages = db.relationship("Message",
+                               backref="user",
+                               cascade="all, delete")
+
     def __repr__(self):
         return f"<id: {self.id},username: {self.username}>"
 
