@@ -4,7 +4,7 @@ from main import db
 from main import bcrypt
 from models.users import User
 from models.chats import Chat
-from models.members import member_association
+from models.messages import Message
 
 
 db_commands = Blueprint("db", __name__)
@@ -44,6 +44,17 @@ def reset_db():
     user2.chats.append(chat1)
 
     # Commit changes to db
+    db.session.commit()
+
+    message1 = Message(chat=chat1,
+                       user=user1,
+                       message="My first message!")
+    message2 = Message(chat=chat1,
+                       user=user2,
+                       message="This is so cool!!!!!")
+
+    db.session.add(message1)
+    db.session.add(message2)
     db.session.commit()
 
     print("Tables reset")
