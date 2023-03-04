@@ -1,4 +1,4 @@
-from marshmallow import fields
+from marshmallow import fields, post_dump
 from main import ma
 
 
@@ -15,6 +15,12 @@ class ChatSchema(ma.Schema):
 
     users = fields.List(fields.Nested("UserSchema",
                                       only=("id", "username",)))
+
+    # Converts list of user dicts into list of username strings
+    @post_dump
+    def deserialise_nested_dict(self, data, **kwargs):
+        data["users"] = [data["username"] for data in data["users"]]
+        return data
 
 
 chat_schema = ChatSchema()
