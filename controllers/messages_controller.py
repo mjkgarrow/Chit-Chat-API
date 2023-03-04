@@ -16,12 +16,9 @@ messages = Blueprint("messages", __name__, url_prefix="/messages")
 @jwt_required()
 @validate_user_chat
 def get_messages(**kwargs):
-    """GETS ALL messages"""
+    """GETS ALL MESSAGES"""
 
-    user = kwargs["user"]
     chat = kwargs["chat"]
-
-    print(chat.messages[0])
 
     return jsonify(messages_schema.dump(chat.messages))
 
@@ -35,6 +32,13 @@ def create_message(**kwargs):
     user = kwargs["user"]
     chat = kwargs["chat"]
 
-    print(chat.messages[0])
+    message_data = message_schema.load(request.json)
 
-    return jsonify(messages_schema.dump(chat.messages))
+    message = Message(chat=chat,
+                      user=user,
+                      message=message_data["message"])
+
+    db.session.add(message)
+    db.session.commit()
+
+    return jsonify(message_schema.dump(message))
