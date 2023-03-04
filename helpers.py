@@ -29,7 +29,8 @@ def validate_user_chat(f):
         kwargs may include a user or chat object, or both
 
 
-    Inspiration from: https://stackoverflow.com/questions/31141826/how-to-add-arbitrary-kwargs-and-defaults-to-function-using-a-decorator
+    Inspiration from: 
+    https://stackoverflow.com/questions/31141826/how-to-add-arbitrary-kwargs-and-defaults-to-function-using-a-decorator
 
 
     """
