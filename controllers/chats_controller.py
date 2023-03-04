@@ -35,15 +35,11 @@ def get_chat_secret(**kwargs):
 
 @chats.post("/")
 @jwt_required()
-def create_chat():
+@validate_user_chat
+def create_chat(**kwargs):
     """CREATES A CHAT AND ADDS CHAT TO USER CHATS LIST"""
 
-    # Find verified user in db
-    user = db.session.get(User, get_jwt_identity())
-
-    # If user not in db, return 401
-    if not user:
-        return abort(401, description="Invalid user")
+    user = kwargs["user"]
 
     # Load data from request body into a chat schema
     chat_data = chat_schema.load(request.json)
