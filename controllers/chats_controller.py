@@ -4,16 +4,29 @@ from flask import Blueprint, abort, request, jsonify
 from main import db, bcrypt
 from models.chats import Chat
 from models.users import User
-from models.members import member_association
 from schemas.chat_schema import chat_schema, chats_schema
 
 
 chats = Blueprint("chats", __name__, url_prefix="/chats")
 
 
+def check_credentials(user, chat, chat_id=-1):
+    """Check if user and chat is in db and user is member of chat"""
+    if chat_id == -1:
+        if not user or chat is None:
+            return False
+        return True
+    else:
+        if (not user
+            or chat is None
+                or chat_id not in [chat.id for chat in user.chats]):
+            return False
+        return True
+
+
 @chats.get("/")
 def get_chats():
-    """GETS chats"""
+    """GETS ALL CHATS"""
 
     # Query db for all chats
     chats_list = db.session.execute(db.select(Chat)).scalars()
@@ -22,15 +35,34 @@ def get_chats():
     return jsonify(chats_schema.dump(chats_list))
 
 
-@chats.post("/")
+@chats.get("/<int:chat_id>")
 @jwt_required()
-def create_chat():
-    """CREATES A CHAT WITH MEMBER LIST"""
+def get_chat_secret(chat_id):
+    """GETS CHAT SECRET TO GIVE TO OTHER USERS"""
 
     # Find verified user in db
     user = db.session.get(User, get_jwt_identity())
 
-    # If user not in db, return error
+    # Find chat in db
+    chat = db.session.get(Chat, chat_id)
+
+    # Check for correct user/chat credentials
+    if not check_credentials(user, chat, chat_id):
+        return abort(401, description="Invalid user or chat")
+
+    # Return JSON of chats
+    return jsonify(chat_passkey=chat.chat_passkey)
+
+
+@chats.post("/")
+@jwt_required()
+def create_chat():
+    """CREATES A CHAT AND ADDS CHAT TO USER CHATS LIST"""
+
+    # Find verified user in db
+    user = db.session.get(User, get_jwt_identity())
+
+    # If user not in db, return 401
     if not user:
         return abort(401, description="Invalid user")
 
@@ -61,17 +93,9 @@ def update_chat(chat_id):
     # Find chat in db
     chat = db.session.get(Chat, chat_id)
 
-    # If user or chat not in db, return error
-    if not user or chat == None:
+    # Check for correct user/chat credentials
+    if not check_credentials(user, chat, chat_id):
         return abort(401, description="Invalid user or chat")
-
-    # Check if user is a member of chat
-    chat_member = db.session.execute(db.select(member_association).
-                                     filter_by(chat_id=chat.id,
-                                               user_id=user.id)).scalar()
-
-    if not chat_member:
-        return abort(401, description="Invalid user")
 
     # Load data from request body into a chat schema
     chat_data = chat_schema.load(request.json)
@@ -96,20 +120,9 @@ def delete_chat(chat_id):
     # Find chat in db
     chat = db.session.get(Chat, chat_id)
 
-    print(user.chats)
-    # or (chat_id not in [d["id"] for d in user.chats])
-
-    # If user or chat not in db, return error
-    if not user or not chat:
+    # Check for correct user/chat credentials
+    if not check_credentials(user, chat, chat_id):
         return abort(401, description="Invalid user or chat")
-
-    # Check if user is a member of chat
-    # chat_member = db.session.execute(db.select(member_association).
-    #                                  filter_by(chat_id=chat.id,
-    #                                            user_id=user.id)).scalar()
-
-    # if not chat_member:
-    #     return abort(401, description="Invalid user")
 
     # Add chat to db
     db.session.delete(chat)
@@ -129,17 +142,9 @@ def join_chat(chat_id):
     # Find chat in db
     chat = db.session.get(Chat, chat_id)
 
-    # If user or chat not in db, return error
-    if not user or not chat:
+    # Check for correct user/chat credentials
+    if not check_credentials(user, chat):
         return abort(401, description="Invalid user or chat")
-
-    # Find member in database
-    chat_member = db.session.execute(
-        db.select(Member).filter_by(chat_id=chat.id, user_id=user.id)).scalar()
-
-    # If user is a chat member already, then abort
-    if chat_member:
-        return abort(401, description="Invalid request")
 
     # Load user submitted chat secret
     chat_data = chat_schema.load(request.json)
@@ -148,12 +153,10 @@ def join_chat(chat_id):
     if chat.chat_passkey != chat_data["chat_passkey"]:
         return abort(401, description="Invalid user or passkey")
 
-    # Create a new member instance
-    member = Member(chat=chat,
-                    member=user)
+    # Add chat to user's list
+    user.chats.append(chat)
 
-    # Add member to db
-    db.session.add(member)
+    # Commit change to db
     db.session.commit()
 
     return jsonify(chat_schema.dump(chat))
