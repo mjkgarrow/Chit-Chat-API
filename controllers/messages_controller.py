@@ -12,11 +12,25 @@ from helpers import validate_user_chat
 messages = Blueprint("messages", __name__, url_prefix="/messages")
 
 
-@messages.get("/<int:chat_id>")
+@messages.get("/chat/<int:chat_id>")
 @jwt_required()
 @validate_user_chat
 def get_messages(**kwargs):
     """GETS ALL messages"""
+
+    user = kwargs["user"]
+    chat = kwargs["chat"]
+
+    print(chat.messages[0])
+
+    return jsonify(messages_schema.dump(chat.messages))
+
+
+@messages.post("/chat/<int:chat_id>")
+@jwt_required()
+@validate_user_chat
+def create_message(**kwargs):
+    """CREATES MESSAGE ON CHATROOM"""
 
     user = kwargs["user"]
     chat = kwargs["chat"]
