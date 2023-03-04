@@ -1,11 +1,9 @@
 from datetime import datetime, timedelta
 from flask_jwt_extended import get_jwt_identity, jwt_required, create_access_token
 from flask import Blueprint, abort, request, jsonify
-from main import db, bcrypt
+from main import db
 from models.users import User
 from schemas.user_schema import user_schema, users_schema
-from schemas.chat_schema import chat_schema, chats_schema
-from schemas.member_schema import member_schema, members_schema
 
 
 users = Blueprint("users", __name__, url_prefix="/users")
