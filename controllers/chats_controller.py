@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta
-from flask_jwt_extended import get_jwt_identity, jwt_required, create_access_token
+from functools import wraps
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask import Blueprint, abort, request, jsonify
-from main import db, bcrypt
+from main import db
 from models.chats import Chat
 from models.users import User
 from schemas.chat_schema import chat_schema, chats_schema
@@ -10,18 +10,39 @@ from schemas.chat_schema import chat_schema, chats_schema
 chats = Blueprint("chats", __name__, url_prefix="/chats")
 
 
-def check_credentials(user, chat, chat_id=-1):
-    """Check if user and chat is in db and user is member of chat"""
-    if chat_id == -1:
-        if not user or chat is None:
-            return False
-        return True
-    else:
-        if (not user
-            or chat is None
-                or chat_id not in [chat.id for chat in user.chats]):
-            return False
-        return True
+def validate_user_chat(f):
+    """Inspiration from: https://stackoverflow.com/questions/31141826/how-to-add-arbitrary-kwargs-and-defaults-to-function-using-a-decorator"""
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        # Populate the chat_id variable
+        chat_id = kwargs["chat_id"]
+
+        try:
+            # Find verified user in db
+            user = db.session.get(User, get_jwt_identity())
+
+            # Find chat in db
+            chat = db.session.get(Chat, chat_id)
+
+            kwargs["user"] = user
+            kwargs["chat"] = chat
+
+        except Exception:
+            return abort(401, description="Invalid user or chat")
+
+        if request.method == "POST":
+            print(user, chat)
+            if not user or chat is None:
+                return abort(401, description="Invalid user or chat")
+            return f(*args, **kwargs)
+        else:
+            if (not user
+                or chat is None
+                    or chat_id not in [chat.id for chat in user.chats]):
+                print("3")
+                return abort(401, description="Invalid user or chat")
+            return f(*args, **kwargs)
+    return decorator
 
 
 @chats.get("/")
@@ -37,21 +58,13 @@ def get_chats():
 
 @chats.get("/<int:chat_id>")
 @jwt_required()
-def get_chat_secret(chat_id):
+@validate_user_chat
+def get_chat_secret(**kwargs):
     """GETS CHAT SECRET TO GIVE TO OTHER USERS"""
 
-    # Find verified user in db
-    user = db.session.get(User, get_jwt_identity())
-
-    # Find chat in db
-    chat = db.session.get(Chat, chat_id)
-
-    # Check for correct user/chat credentials
-    if not check_credentials(user, chat, chat_id):
-        return abort(401, description="Invalid user or chat")
-
     # Return JSON of chats
-    return jsonify(chat_passkey=chat.chat_passkey)
+    return jsonify(chat_passkey=kwargs["chat"].chat_passkey)
+    # return jsonify(chat_passkey=chat.chat_passkey)
 
 
 @chats.post("/")
@@ -84,18 +97,11 @@ def create_chat():
 
 @chats.put("/<int:chat_id>")
 @jwt_required()
-def update_chat(chat_id):
+@validate_user_chat
+def update_chat(**kwargs):
     """UPDATES A CHAT NAME"""
 
-    # Find verified user in db
-    user = db.session.get(User, get_jwt_identity())
-
-    # Find chat in db
-    chat = db.session.get(Chat, chat_id)
-
-    # Check for correct user/chat credentials
-    if not check_credentials(user, chat, chat_id):
-        return abort(401, description="Invalid user or chat")
+    chat = kwargs["chat"]
 
     # Load data from request body into a chat schema
     chat_data = chat_schema.load(request.json)
@@ -111,18 +117,12 @@ def update_chat(chat_id):
 
 @chats.delete("/<int:chat_id>")
 @jwt_required()
-def delete_chat(chat_id):
+@validate_user_chat
+def delete_chat(**kwargs):
     """UPDATES A CHAT NAME"""
 
-    # Find verified user in db
-    user = db.session.get(User, get_jwt_identity())
-
-    # Find chat in db
-    chat = db.session.get(Chat, chat_id)
-
-    # Check for correct user/chat credentials
-    if not check_credentials(user, chat, chat_id):
-        return abort(401, description="Invalid user or chat")
+    # Get chat object from decorator
+    chat = kwargs["chat"]
 
     # Add chat to db
     db.session.delete(chat)
@@ -133,18 +133,14 @@ def delete_chat(chat_id):
 
 @chats.post("/<int:chat_id>")
 @jwt_required()
-def join_chat(chat_id):
+@validate_user_chat
+def join_chat(**kwargs):
     """UPDATES A CHAT NAME"""
+    # Get chat object from decorator
+    chat = kwargs["chat"]
 
-    # Find verified user in db
-    user = db.session.get(User, get_jwt_identity())
-
-    # Find chat in db
-    chat = db.session.get(Chat, chat_id)
-
-    # Check for correct user/chat credentials
-    if not check_credentials(user, chat):
-        return abort(401, description="Invalid user or chat")
+    # Get user object from decorator
+    user = kwargs["user"]
 
     # Load user submitted chat secret
     chat_data = chat_schema.load(request.json)
