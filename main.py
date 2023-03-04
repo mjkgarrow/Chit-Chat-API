@@ -26,4 +26,7 @@ def create_app():
     for controller in registerable_controllers:
         app.register_blueprint(controller)
 
+    from commands import db_commands
+    app.register_blueprint(db_commands)
+
     return app
