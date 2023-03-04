@@ -4,9 +4,8 @@ from flask import Blueprint, abort, request, jsonify
 from main import db, bcrypt
 from models.chats import Chat
 from models.users import User
-from models.members import Member
+from models.members import member_association
 from schemas.chat_schema import chat_schema, chats_schema
-from schemas.member_schema import member_schema, members_schema
 
 
 chats = Blueprint("chats", __name__, url_prefix="/chats")
@@ -42,16 +41,10 @@ def create_chat():
     chat = Chat(chat_name=chat_data["chat_name"],
                 chat_passkey=chat_data["chat_passkey"])
 
-    # Add chat to db
-    db.session.add(chat)
-    db.session.commit()
+    # Add the chat to the user's list of chats
+    user.chats.append(chat)
 
-    # Create a Member instance with the chat creator included
-    members = Member(chat_id=chat.id,
-                     user_id=user.id)
-
-    # Add member to db
-    db.session.add(members)
+    # Commit change to db
     db.session.commit()
 
     return jsonify(chat_schema.dump(chat))
@@ -69,12 +62,13 @@ def update_chat(chat_id):
     chat = db.session.get(Chat, chat_id)
 
     # If user or chat not in db, return error
-    if not user or not chat:
+    if not user or chat == None:
         return abort(401, description="Invalid user or chat")
 
     # Check if user is a member of chat
-    chat_member = db.session.execute(
-        db.select(Member).filter_by(chat_id=chat.id, user_id=user.id)).scalar()
+    chat_member = db.session.execute(db.select(member_association).
+                                     filter_by(chat_id=chat.id,
+                                               user_id=user.id)).scalar()
 
     if not chat_member:
         return abort(401, description="Invalid user")
@@ -85,8 +79,7 @@ def update_chat(chat_id):
     # Create Chat instance, populate with request body data
     chat.chat_name = chat_data["chat_name"]
 
-    # Add chat to db
-    # db.session.add(chat)
+    # Commit change to db
     db.session.commit()
 
     return jsonify(chat_schema.dump(chat))
@@ -103,16 +96,20 @@ def delete_chat(chat_id):
     # Find chat in db
     chat = db.session.get(Chat, chat_id)
 
+    print(user.chats)
+    # or (chat_id not in [d["id"] for d in user.chats])
+
     # If user or chat not in db, return error
     if not user or not chat:
         return abort(401, description="Invalid user or chat")
 
     # Check if user is a member of chat
-    chat_member = db.session.execute(
-        db.select(Member).filter_by(chat_id=chat.id, user_id=user.id)).scalar()
+    # chat_member = db.session.execute(db.select(member_association).
+    #                                  filter_by(chat_id=chat.id,
+    #                                            user_id=user.id)).scalar()
 
-    if not chat_member:
-        return abort(401, description="Invalid user")
+    # if not chat_member:
+    #     return abort(401, description="Invalid user")
 
     # Add chat to db
     db.session.delete(chat)
