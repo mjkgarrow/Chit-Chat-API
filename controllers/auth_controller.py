@@ -3,7 +3,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required, create_access_tok
 from flask import Blueprint, abort, request, jsonify
 from main import db, bcrypt
 from models.users import User
-from schemas.user_schema import user_schema, users_schema
+from schemas.user_schema import user_schema
 
 
 auth = Blueprint("auth", __name__, url_prefix="/auth")
