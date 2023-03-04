@@ -4,6 +4,8 @@ from flask import Blueprint, abort, request, jsonify
 from main import db
 from models.users import User
 from schemas.user_schema import user_schema, users_schema
+from schemas.message_schema import message_schema, messages_schema
+from helpers import validate_user_chat
 
 
 users = Blueprint("users", __name__, url_prefix="/users")
@@ -20,9 +22,9 @@ def get_users():
     return jsonify(users_schema.dump(users_list))
 
 
-@users.get("/<int:user_id>")
+@users.get("/chats/")
 @jwt_required()
-def get_user_chats(user_id):
+def get_user_chats():
     """GETS LIST OF CHATS USER IS MEMBER OF"""
 
     # Find user in the db
@@ -30,7 +32,17 @@ def get_user_chats(user_id):
 
     # If user not in database
     # or user_id doesn't match current user, return error
-    if not user or user.id != user_id:
+    if not user:
         return abort(401, description="Invalid user")
 
     return jsonify(user_schema.dump(user))
+
+
+# TODO
+@users.get("/messages/")
+@jwt_required()
+@validate_user_chat
+def get_latest_messages(**kwargs):
+    """GETS LIST OF CHATS USER IS MEMBER OF"""
+
+    return jsonify(message="TODO")
