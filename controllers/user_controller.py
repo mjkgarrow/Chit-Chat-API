@@ -23,26 +23,66 @@ def get_users():
 
 
 @users.get("/chats/")
-@jwt_required()
-def get_user_chats():
+@validate_user_chat
+def get_user_chats(**kwargs):
     """GETS LIST OF CHATS USER IS MEMBER OF"""
 
-    # Find user in the db
-    user = db.session.get(User, get_jwt_identity())
-
-    # If user not in database
-    # or user_id doesn't match current user, return error
-    if not user:
-        return abort(401, description="Invalid user")
-
-    return jsonify(user_schema.dump(user))
+    return jsonify(user_schema.dump(kwargs["user"]))
 
 
-# TODO
-@users.get("/messages/")
-@jwt_required()
+@users.get("/latest_messages/")
 @validate_user_chat
 def get_latest_messages(**kwargs):
     """GETS LIST OF CHATS USER IS MEMBER OF"""
 
-    return jsonify(message="TODO")
+    user = kwargs["user"]
+
+    # Generate list of latest messages
+    latest_messages = []
+    for chat in user.chats:
+        # Check there are actual messages in the chat
+        if chat.messages:
+
+            # Get ID for latest message
+            message_id = chat.messages[-1].id
+
+            # Get the chat name
+            chat_name = next(found_chat.chat_name for found_chat in user.chats
+                             if found_chat.id == chat.messages[-1].chat_id)
+
+            # Get the username of the message creator
+            username = db.session.get(User, chat.messages[-1].user_id).username
+
+            # Only append latest messages from other people
+            if username == user.username:
+                continue
+
+            # Get the message content
+            message = chat.messages[-1].message
+
+            # Append all details to latest message
+            latest_messages.append({"id": message_id,
+                                    "chat_name": {"chat_name": chat_name},
+                                    "message": message,
+                                    "user": {"username": username}
+                                    })
+
+    return jsonify(messages_schema.dump(latest_messages))
+
+
+@users.get("/all_messages/")
+@validate_user_chat
+def get_all_messages(**kwargs):
+    """GETS LIST OF CHATS USER IS MEMBER OF"""
+
+    user = kwargs["user"]
+
+    # Generate list of latest messages
+    all_messages = []
+    for chat in user.chats:
+        # Check there are actual messages in the chat
+        if chat.messages:
+            for message in chat.messages:
+                all_messages.append(message)
+
+    return jsonify(messages_schema.dump(all_messages))
