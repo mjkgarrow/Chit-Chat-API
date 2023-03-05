@@ -34,19 +34,28 @@ def get_chat_secret(**kwargs):
 @chats.post("/")
 @validate_user_chat
 def create_chat(**kwargs):
-    """CREATES A CHAT AND ADDS CHAT TO USER'S CHATS LIST"""
-
-    user = kwargs["user"]
-
+    """CREATES A CHAT AND ADDS ALL PROVIDED USERS AS MEMBERS"""
     # Load data from request body into a chat schema
     chat_data = chat_schema.load(request.json)
+
+    # Create list of users to be added to chat
+    users = [kwargs["user"]]
+    for user in chat_data["users"]:
+        # Find verified user in db
+        user = db.session.get(User, user["id"])
+
+        if user is None:
+            return abort(401, description="Invalid user or chat")
+
+        users.append(user)
 
     # Create Chat instance, populate with request body data
     chat = Chat(chat_name=chat_data["chat_name"],
                 chat_passkey=chat_data["chat_passkey"])
 
     # Add the chat to the user's list of chats
-    user.chats.append(chat)
+    for user in users:
+        user.chats.append(chat)
 
     # Commit change to db
     db.session.commit()
