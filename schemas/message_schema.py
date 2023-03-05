@@ -1,6 +1,6 @@
+import json
 from marshmallow import fields, post_dump
 from main import ma
-import json
 
 
 class MessageSchema(ma.Schema):
@@ -12,7 +12,8 @@ class MessageSchema(ma.Schema):
                   "user_id",
                   "created_at",
                   "edited_at",
-                  "user")
+                  "user",
+                  "chat_name")
         load_only = ("chat_id",
                      "user_id",
                      "created_at",
@@ -20,6 +21,9 @@ class MessageSchema(ma.Schema):
 
     user = fields.Nested("UserSchema",
                          only=("username",))
+
+    chat_name = fields.Nested("ChatSchema",
+                              only=("chat_name",))
 
     # Code from: https://stackoverflow.com/questions/44162315/convert-object-when-serializing-it
     # Extracts value from nested dict and returns it
@@ -29,15 +33,20 @@ class MessageSchema(ma.Schema):
         if many:
             # Restructure user values to remove nesting
             for d in data:
-                d["user"] = d["user"]["username"]
-
+                if "user" in d.keys():
+                    d["user"] = d["user"]["username"]
+                if "chat_name" in d.keys():
+                    d["chat_name"] = d["chat_name"]["chat_name"]
             # Sort messages by id so they are in chronological order
             data = sorted(data, key=lambda d: d["id"])
 
         # If only one object deserialised
-        elif "user" in data.keys():
+        else:
             # Restructure user values to remove nesting
-            data["user"] = data["user"]["username"]
+            if "user" in data.keys():
+                data["user"] = data["user"]["username"]
+            if "chat_name" in data.keys():
+                data["chat_name"] = data["chat_name"]["chat_name"]
 
         return data
 
