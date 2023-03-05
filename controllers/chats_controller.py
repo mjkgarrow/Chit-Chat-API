@@ -27,15 +27,14 @@ def get_chats():
 def get_chat_secret(**kwargs):
     """GETS CHAT SECRET TO GIVE TO OTHER USERS"""
 
-    # Return JSON of chats
+    # Return JSON of chat passkey
     return jsonify(chat_passkey=kwargs["chat"].chat_passkey)
-    # return jsonify(chat_passkey=chat.chat_passkey)
 
 
 @chats.post("/")
 @validate_user_chat
 def create_chat(**kwargs):
-    """CREATES A CHAT AND ADDS CHAT TO USER CHATS LIST"""
+    """CREATES A CHAT AND ADDS CHAT TO USER'S CHATS LIST"""
 
     user = kwargs["user"]
 
@@ -52,6 +51,7 @@ def create_chat(**kwargs):
     # Commit change to db
     db.session.commit()
 
+    # Return JSON of created chat
     return jsonify(chat_schema.dump(chat))
 
 
@@ -72,6 +72,7 @@ def update_chat(**kwargs):
     # Commit change to db
     db.session.commit()
 
+    # Return JSON of updated chat
     return jsonify(chat_schema.dump(chat))
 
 
@@ -83,10 +84,11 @@ def delete_chat(**kwargs):
     # Get chat object from decorator
     chat = kwargs["chat"]
 
-    # Add chat to db
+    # Delete chat from db
     db.session.delete(chat)
     db.session.commit()
 
+    # Return JSON of deleted chat
     return jsonify(chat_schema.dump(chat))
 
 
@@ -113,6 +115,7 @@ def join_chat(**kwargs):
     # Commit change to db
     db.session.commit()
 
+    # Return JSON of joined chat
     return jsonify(chat_schema.dump(chat))
 
 
@@ -126,10 +129,12 @@ def leave_chat(**kwargs):
     # Get user object from decorator
     user = kwargs["user"]
 
-    # Remove chat to user's list
-    user.chats.remove(chat)
+    # Remove chat from user's chat list
+    if chat in user.chats:
+        user.chats.remove(chat)
 
     # Commit change to db
     db.session.commit()
 
+    # Return JSON of left chat
     return jsonify(chat_schema.dump(chat))

@@ -59,10 +59,11 @@ def validate_user_chat(f):
             if chat is None:
                 return abort(401, description="Invalid user or chat")
 
-            # If request method is 'put' then also check
-            # if user is a member of chat,
-            # user is trying to change chat name
-            if request.method == "PUT":
+            # check if user is a member of chat
+            # Situations that need user to be a member of a chat:
+            # - deleting a chat (DELETE)
+            # - updating a chat (PUT)
+            if request.method == "PUT" or request.method == "DELETE":
                 if kwargs["chat_id"] not in [chat.id for chat in user.chats]:
                     return abort(401, description="Invalid user or chat")
 
