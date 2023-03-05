@@ -1,5 +1,6 @@
 from marshmallow import fields, post_dump
 from main import ma
+import json
 
 
 class MessageSchema(ma.Schema):
@@ -22,10 +23,22 @@ class MessageSchema(ma.Schema):
 
     # Code from: https://stackoverflow.com/questions/44162315/convert-object-when-serializing-it
     # Extracts value from nested dict and returns it
-    @post_dump
-    def deserialise_nested_dict(self, data, **kwargs):
-        if "user" in data.keys():
-            data['user'] = data['user']["username"]
+    @post_dump(pass_many=True)
+    def deserialise_nested_dict(self, data, many):
+        # Check if there are many objects deserialised
+        if many:
+            # Restructure user values to remove nesting
+            for d in data:
+                d["user"] = d["user"]["username"]
+
+            # Sort messages by id so they are in chronological order
+            data = sorted(data, key=lambda d: d["id"])
+
+        # If only one object deserialised
+        elif "user" in data.keys():
+            # Restructure user values to remove nesting
+            data["user"] = data["user"]["username"]
+
         return data
 
 
