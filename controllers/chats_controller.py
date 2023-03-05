@@ -1,5 +1,4 @@
 from datetime import datetime
-from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask import Blueprint, abort, request, jsonify
 from main import db
 from models.chats import Chat
@@ -22,9 +21,9 @@ def get_chats():
     return jsonify(chats_schema.dump(chats_list))
 
 
-@chats.get("/<int:chat_id>")
+@chats.get("/<int:chat_id>/passkey")
 @validate_user_chat
-def get_chat_secret(**kwargs):
+def get_chat_passkey(**kwargs):
     """GETS CHAT SECRET TO GIVE TO OTHER USERS"""
 
     # Return JSON of chat passkey
@@ -35,6 +34,7 @@ def get_chat_secret(**kwargs):
 @validate_user_chat
 def create_chat(**kwargs):
     """CREATES A CHAT AND ADDS ALL PROVIDED USERS AS MEMBERS"""
+
     # Load data from request body into a chat schema
     chat_data = chat_schema.load(request.json)
 
@@ -88,7 +88,7 @@ def update_chat(**kwargs):
 @chats.delete("/<int:chat_id>")
 @validate_user_chat
 def delete_chat(**kwargs):
-    """UPDATES A CHAT NAME"""
+    """DELETES A CHAT"""
 
     # Get chat object from decorator
     chat = kwargs["chat"]
@@ -101,10 +101,11 @@ def delete_chat(**kwargs):
     return jsonify(chat_schema.dump(chat))
 
 
-@chats.patch("/join/<int:chat_id>")
+@chats.patch("/<int:chat_id>/join")
 @validate_user_chat
 def join_chat(**kwargs):
-    """UPDATES A CHAT NAME"""
+    """USER JOINS A CHAT"""
+
     # Get chat object from decorator
     chat = kwargs["chat"]
 
@@ -128,10 +129,11 @@ def join_chat(**kwargs):
     return jsonify(chat_schema.dump(chat))
 
 
-@chats.patch("/leave/<int:chat_id>")
+@chats.patch("/<int:chat_id>/leave")
 @validate_user_chat
 def leave_chat(**kwargs):
-    """UPDATES A CHAT NAME"""
+    """USER LEAVES A CHAT"""
+
     # Get chat object from decorator
     chat = kwargs["chat"]
 

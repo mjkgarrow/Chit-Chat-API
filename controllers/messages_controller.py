@@ -1,5 +1,4 @@
 from datetime import datetime
-from flask_jwt_extended import jwt_required
 from flask import Blueprint, abort, request, jsonify
 from main import db
 from models.messages import Message
@@ -24,7 +23,7 @@ def get_messages(**kwargs):
 @messages.post("/chat/<int:chat_id>")
 @validate_user_chat
 def create_message(**kwargs):
-    """CREATES MESSAGE ON CHATROOM"""
+    """CREATES MESSAGE IN A CHAT"""
 
     # Get user and message objects from kwargs
     user = kwargs["user"]
@@ -51,7 +50,7 @@ def create_message(**kwargs):
 @messages.put("/<int:message_id>")
 @validate_user_chat
 def update_message(**kwargs):
-    """CREATES MESSAGE ON CHATROOM"""
+    """UPDATES A MESSAGE"""
 
     # Get user and message objects from kwargs
     user = kwargs["user"]
@@ -76,7 +75,7 @@ def update_message(**kwargs):
 @messages.delete("/<int:message_id>")
 @validate_user_chat
 def delete_message(**kwargs):
-    """CREATES MESSAGE ON CHATROOM"""
+    """DELETES A MESSAGE"""
 
     # Check if message object was handed to kwargs
     if "message" in kwargs.keys():
