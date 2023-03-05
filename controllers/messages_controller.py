@@ -64,6 +64,7 @@ def update_message(**kwargs):
     if message.user_id == user.id:
         # Update message content
         message.message = message_data["message"]
+        message.edited_at = datetime.utcnow()
 
     # Commit change to db
     db.session.commit()
