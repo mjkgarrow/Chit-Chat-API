@@ -70,3 +70,20 @@ def update_message(**kwargs):
 
     # Return deserialised message object
     return jsonify(message_schema.dump(message))
+
+
+@messages.delete("/<int:message_id>")
+@validate_user_chat
+def delete_message(**kwargs):
+    """CREATES MESSAGE ON CHATROOM"""
+
+    # Check if message object was handed to kwargs
+    if "message" in kwargs.keys():
+        # Delete message from db
+        db.session.delete(kwargs["message"])
+        db.session.commit()
+
+        # Return deserialised message object
+        return jsonify(message_schema.dump(kwargs["message"]))
+
+    return abort(401, description="Invalid user or message")
