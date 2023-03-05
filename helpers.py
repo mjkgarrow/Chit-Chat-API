@@ -1,9 +1,10 @@
 from functools import wraps
-from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 from flask import abort, request
 from main import db
 from models.chats import Chat
 from models.users import User
+from models.messages import Message
 
 
 def validate_user_chat(f):
@@ -14,7 +15,7 @@ def validate_user_chat(f):
     and return a user object in the decorated function kwargs.
 
     If the decorator is called with any other method or provided with
-    a chat_id argument it will authenticate the user, 
+    a chat_id argument it will authenticate the user,
     verify the chat exists in db, verify the user is a member of chat,
     and return user and chat objects in the decorated function kwargs.
 
@@ -29,63 +30,57 @@ def validate_user_chat(f):
         kwargs may include a user or chat object, or both
 
 
-    Inspiration from: 
+    Inspiration from:
     https://stackoverflow.com/questions/31141826/how-to-add-arbitrary-kwargs-and-defaults-to-function-using-a-decorator
 
 
     """
+
     @wraps(f)
     def decorator(*args, **kwargs):
-        # If function is a POST method and doesn't include a chat_id
-        if request.method == "POST" and "chat_id" not in kwargs.keys():
-            try:
-                # Find verified user in db
-                user = db.session.get(User, get_jwt_identity())
+        # Make sure JWT in request - similar to @jwt_required
+        verify_jwt_in_request()
 
-                # Initialise user object in kwargs dict
-                kwargs["user"] = user
+        # Find verified user in db
+        user = db.session.get(User, get_jwt_identity())
 
-            except Exception:
+        if user is None:
+            return abort(401, description="Invalid user or chat")
+
+        # Initialise user object in kwargs dict
+        kwargs["user"] = user
+
+        # Verify chat exists in db
+        if "chat_id" in kwargs:
+            # Find chat in db
+            chat = db.session.get(Chat, kwargs["chat_id"])
+
+            # Verify chat exists
+            if chat is None:
                 return abort(401, description="Invalid user or chat")
 
-            # Return function with new user object included
-            return f(*args, **kwargs)
-
-        # If function is requesting verification on user and chat id
-        else:
-            # Populate the chat_id variable
-            chat_id = kwargs["chat_id"]
-
-            try:
-                # Find verified user in db
-                user = db.session.get(User, get_jwt_identity())
-
-                # Find chat in db
-                chat = db.session.get(Chat, chat_id)
-
-                # Initialise user and chat objects in kwargs dict
-                kwargs["user"] = user
-                kwargs["chat"] = chat
-
-            except Exception:
-                return abort(401, description="Invalid user or chat")
-
-            # Verification logic
-            if request.method == "POST":
-                # If user or chat is not in db, abort
-                if not user or chat is None:
+            # If request method is 'put' then also check
+            # if user is a member of chat,
+            # user is trying to change chat name
+            if request.method == "PUT":
+                if kwargs["chat_id"] not in [chat.id for chat in user.chats]:
                     return abort(401, description="Invalid user or chat")
 
-                # Run decorated func
-                return f(*args, **kwargs)
-            else:
-                # If user or chat is not in db,
-                # or user is member of chat, abort
-                if (not user
-                    or chat is None
-                        or chat_id not in [chat.id for chat in user.chats]):
-                    return abort(401, description="Invalid user or chat")
+            # Initialise chat object in kwargs dict
+            kwargs["chat"] = chat
 
-                # Run decorated func
-                return f(*args, **kwargs)
+        # Verify message exists in db
+        if "message_id" in kwargs:
+            message = db.session.get(Message, kwargs["message_id"])
+
+            if message is None:
+                return abort(401, description="Invalid user or message")
+
+            # Verify user created message
+            if message.user_id == user.id:
+                # Initialise message object in kwargs dict
+                kwargs["message"] = message
+
+        return f(*args, **kwargs)
+
     return decorator
