@@ -12,6 +12,14 @@ def get_index():
     return jsonify(message="Welcome to Chit-Chat, a RESTful API for chatting with friends")
 
 
+@index.post("/drop")
+def drop():
+    db.drop_all()
+    db.create_all()
+
+    return jsonify(message="Tables dropped and created")
+
+
 @index.post("/")
 def reset():
     db.drop_all()
