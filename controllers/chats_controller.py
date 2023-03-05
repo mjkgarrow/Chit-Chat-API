@@ -23,7 +23,6 @@ def get_chats():
 
 
 @chats.get("/<int:chat_id>")
-@jwt_required()
 @validate_user_chat
 def get_chat_secret(**kwargs):
     """GETS CHAT SECRET TO GIVE TO OTHER USERS"""
@@ -34,7 +33,6 @@ def get_chat_secret(**kwargs):
 
 
 @chats.post("/")
-@jwt_required()
 @validate_user_chat
 def create_chat(**kwargs):
     """CREATES A CHAT AND ADDS CHAT TO USER CHATS LIST"""
@@ -58,7 +56,6 @@ def create_chat(**kwargs):
 
 
 @chats.put("/<int:chat_id>")
-@jwt_required()
 @validate_user_chat
 def update_chat(**kwargs):
     """UPDATES A CHAT NAME"""
@@ -79,7 +76,6 @@ def update_chat(**kwargs):
 
 
 @chats.delete("/<int:chat_id>")
-@jwt_required()
 @validate_user_chat
 def delete_chat(**kwargs):
     """UPDATES A CHAT NAME"""
@@ -94,8 +90,7 @@ def delete_chat(**kwargs):
     return jsonify(chat_schema.dump(chat))
 
 
-@chats.post("/<int:chat_id>")
-@jwt_required()
+@chats.patch("/join/<int:chat_id>")
 @validate_user_chat
 def join_chat(**kwargs):
     """UPDATES A CHAT NAME"""
@@ -114,6 +109,25 @@ def join_chat(**kwargs):
 
     # Add chat to user's list
     user.chats.append(chat)
+
+    # Commit change to db
+    db.session.commit()
+
+    return jsonify(chat_schema.dump(chat))
+
+
+@chats.patch("/leave/<int:chat_id>")
+@validate_user_chat
+def leave_chat(**kwargs):
+    """UPDATES A CHAT NAME"""
+    # Get chat object from decorator
+    chat = kwargs["chat"]
+
+    # Get user object from decorator
+    user = kwargs["user"]
+
+    # Remove chat to user's list
+    user.chats.remove(chat)
 
     # Commit change to db
     db.session.commit()
