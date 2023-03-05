@@ -8,16 +8,7 @@ from models.messages import Message
 
 
 def validate_user_chat(f):
-    """This decorator authenticates users and chats
-
-    If the decorator is called through a POST route method when
-    no chat_id argument is provided then it will only authenticate the user
-    and return a user object in the decorated function kwargs.
-
-    If the decorator is called with any other method or provided with
-    a chat_id argument it will authenticate the user,
-    verify the chat exists in db, verify the user is a member of chat,
-    and return user and chat objects in the decorated function kwargs.
+    """This decorator authenticates users, chats and messages
 
     Parameters
     ----------
@@ -27,7 +18,7 @@ def validate_user_chat(f):
     Returns
     -------
     function with kwargs
-        kwargs may include a user or chat object, or both
+        kwargs include a user object and possibly a chat or message object, or all three
 
 
     Inspiration from:
