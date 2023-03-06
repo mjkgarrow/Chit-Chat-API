@@ -44,7 +44,7 @@ def create_message(**kwargs):
     db.session.commit()
 
     # Return deserialised message object
-    return jsonify(message_schema.dump(message))
+    return jsonify(message_schema.dump(message)), 201
 
 
 @messages.put("/<int:message_id>")
@@ -63,7 +63,6 @@ def update_message(**kwargs):
     if message.user_id == user.id:
         # Update message content
         message.message = message_data["message"]
-        message.edited_at = datetime.utcnow()
 
     # Commit change to db
     db.session.commit()
@@ -78,7 +77,7 @@ def delete_message(**kwargs):
     """DELETES A MESSAGE"""
 
     # Check if message object was handed to kwargs
-    if "message" in kwargs.keys():
+    if "message" in kwargs:
         # Delete message from db
         db.session.delete(kwargs["message"])
         db.session.commit()

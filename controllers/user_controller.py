@@ -36,7 +36,7 @@ def create_user():
     token = create_access_token(identity=str(user.id),
                                 expires_delta=timedelta(days=100))
 
-    return jsonify({"user": user.username, "token": token})
+    return jsonify({"user": user.username, "token": token}), 201
 
 
 @users.put("/")
