@@ -22,9 +22,6 @@ class Message(db.Model):
     # Date message was created
     created_at = db.Column(db.DateTime(), default=datetime.utcnow)
 
-    # Date message was edited
-    edited_at = db.Column(db.DateTime(), default=datetime.utcnow)
-
     def asdict(self):
         return {"id": self.id,
                 "message": self.message,
