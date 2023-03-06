@@ -1,4 +1,3 @@
-from datetime import datetime
 from flask import Blueprint, abort, request, jsonify
 from main import db
 from models.chats import Chat
@@ -41,6 +40,10 @@ def create_chat(**kwargs):
     # Create list of users to be added to chat
     users = [kwargs["user"]]
     for user in chat_data["users"]:
+        # Don't duplicate the current user in the user list
+        if user["id"] == kwargs["user"].id:
+            continue
+
         # Find verified user in db
         user = db.session.get(User, user["id"])
 
@@ -61,7 +64,7 @@ def create_chat(**kwargs):
     db.session.commit()
 
     # Return JSON of created chat
-    return jsonify(chat_schema.dump(chat))
+    return jsonify(chat_schema.dump(chat)), 201
 
 
 @chats.put("/<int:chat_id>")
@@ -76,7 +79,6 @@ def update_chat(**kwargs):
 
     # Create Chat instance, populate with request body data
     chat.chat_name = chat_data["chat_name"]
-    chat.updated_at = datetime.utcnow()
 
     # Commit change to db
     db.session.commit()
