@@ -1,7 +1,7 @@
 #! /bin/bash
 
 
-# Check if superuser roll was supplied
+# Check if superuser role was supplied
 if [ $# -lt 1 ]; then
   echo "Usage: $0 <PostgreSQL superuser role>"
   exit 1
@@ -14,14 +14,25 @@ DB_NAME="chit_chat_db"
 DB_USER="chat_dev"
 DB_PASS="chat_dev"
 
-# Create the database
-sudo -u $1 psql -c "CREATE DATABASE $DB_NAME;"
+# Check if database already exists, if not then create it
+if [ "$( psql -XtAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" )" = '1' ]; then
+    echo "Database already exists"
+    
+else
+    # Create the database
+    sudo -u $1 psql -c "CREATE DATABASE $DB_NAME;"
+fi
 
-# Create the user and grant access to the database
-sudo -u $1 psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';"
-sudo -u $1 psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
+# Check if user already exists, if not then create it
+if [ "$( psql -XtAc "SELECT 1 FROM pg_user WHERE pg_user.usename='$DB_USER';" )" = '1' ]; then
+    echo "User already exists"
+else
+  # Create the user and grant access to the database
+  sudo -u $1 psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';"
+  sudo -u $1 psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
+  echo "chit_chat_db created and user chat_dev granted all privileges"
+fi
 
-echo "chit_chat_db created and user chat_dev granted all privileges"
 
 echo "Creating virtual environment and installing requirements"
 
@@ -37,9 +48,18 @@ if command -v python3 &>/dev/null; then
 
       # Check python version number (must be greater that 3.8)
       if [ $vermajor -eq 3 ] && [ $verminor -gt 8 ]; then
+
+        # Prevent pycache files from being created
+        export PYTHONDONTWRITEBYTECODE=1 
+
         # Install the required packages from the requirements file
         pip3 install -r requirements.txt | grep -v 'already satisfied'
-    
+
+        pip install --upgrade pip | grep -v 'already satisfied'
+
+        # Create tables
+        flask db create
+
         # Display usage
         echo "To run API use: flask run"
 
@@ -50,8 +70,16 @@ if command -v python3 &>/dev/null; then
       # Activate the virtual environment
       source .venv/bin/activate
 
+      # Prevent pycache files from being created
+      export PYTHONDONTWRITEBYTECODE=1 
+
       # Install the required packages from the requirements file
-      pip3 install -r requirements.txt | grep -v 'already satisfied'  
+      pip3 install -r requirements.txt | grep -v 'already satisfied'
+
+      pip install --upgrade pip | grep -v 'already satisfied'
+
+      # Create tables
+      flask db create
     
       # Display usage
       echo "To run API use: flask run"
@@ -63,9 +91,17 @@ if command -v python3 &>/dev/null; then
     # Activate the virtual environment
     source .venv/bin/activate
 
+    # Prevent pycache files from being created
+    export PYTHONDONTWRITEBYTECODE=1 
+
     # Install the required packages from the requirements file
     pip3 install -r requirements.txt | grep -v 'already satisfied'
+
+    pip install --upgrade pip | grep -v 'already satisfied' | grep -v 'already satisfied'
     
+    # Create tables
+    flask db create
+
     # Display usage
     echo "To run API use: flask run"
   fi 
