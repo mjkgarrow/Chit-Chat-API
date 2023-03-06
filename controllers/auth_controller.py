@@ -27,6 +27,6 @@ def signin_user():
 
     # Generate new token
     token = create_access_token(identity=str(user.id),
-                                expires_delta=timedelta(days=100))
+                                expires_delta=timedelta(days=1))
 
     return jsonify({"user": user.username, "token": token})
