@@ -1,4 +1,5 @@
-from marshmallow import fields, post_dump
+from datetime import datetime, timezone
+from marshmallow import fields, post_dump, pre_dump
 from main import ma
 
 
@@ -9,12 +10,18 @@ class ChatSchema(ma.Schema):
                   "chat_name",
                   "chat_passkey",
                   "created_at",
-                  "updated_at",
                   "users")
-        load_only = ("chat_passkey", "updated_at", "created_at")
+        load_only = ("chat_passkey", )
 
     users = fields.List(fields.Nested("UserSchema",
                                       only=("id", "username",)))
+
+    # Before dump, convert utc time to local time
+    @pre_dump
+    def convert_utc_datetime_to_local(self, data, **kwargs):
+        data.created_at = data.created_at.replace(
+            tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y")
+        return data
 
     # Converts list of user dicts into list of username strings
     @post_dump

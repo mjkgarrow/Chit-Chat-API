@@ -16,9 +16,6 @@ class Chat(db.Model, dict):
     # Date chatroom was created
     created_at = db.Column(db.DateTime(), default=datetime.utcnow)
 
-    # Date chatroom was updated
-    updated_at = db.Column(db.DateTime(), default=datetime.utcnow)
-
     # Relationship with the Users table, back populates
     users = db.relationship("User",
                             secondary=member_association,
