@@ -43,14 +43,12 @@ def validate_user_chat(f):
 
         # Verify chat exists in db
         if "chat_id" in kwargs:
-            # Find chat in db
             chat = db.session.get(Chat, kwargs["chat_id"])
 
-            # Verify chat exists
             if chat is None:
                 return abort(401, description="Invalid user or chat")
 
-            # check if user is a member of chat
+            # Check if user is a member of chat
             # Situations that need user to be a member of a chat:
             # - deleting a chat (DELETE)
             # - updating a chat (PUT)
@@ -68,7 +66,7 @@ def validate_user_chat(f):
             if message is None:
                 return abort(401, description="Invalid user or message")
 
-            # Verify user created message
+            # Check user created message
             if message.user_id == user.id:
                 # Initialise message object in kwargs dict
                 kwargs["message"] = message
