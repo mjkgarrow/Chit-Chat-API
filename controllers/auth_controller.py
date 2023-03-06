@@ -1,6 +1,6 @@
 from datetime import timedelta
 from flask_jwt_extended import create_access_token
-from flask import Blueprint, abort, request, jsonify
+from flask import Blueprint, abort, jsonify, request
 from main import db, bcrypt
 from models.users import User
 from schemas.user_schema import user_schema

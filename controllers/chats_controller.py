@@ -1,4 +1,4 @@
-from flask import Blueprint, abort, request, jsonify
+from flask import Blueprint, abort, jsonify, request
 from main import db
 from models.chats import Chat
 from models.users import User

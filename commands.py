@@ -1,4 +1,3 @@
-from datetime import date
 from flask import Blueprint, jsonify
 from main import db
 from main import bcrypt

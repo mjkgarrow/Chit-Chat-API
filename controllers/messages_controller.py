@@ -1,5 +1,4 @@
-from datetime import datetime
-from flask import Blueprint, abort, request, jsonify
+from flask import Blueprint, abort, jsonify, request
 from main import db
 from models.messages import Message
 from schemas.message_schema import message_schema, messages_schema
