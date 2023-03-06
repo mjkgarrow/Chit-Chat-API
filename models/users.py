@@ -16,9 +16,6 @@ class User(db.Model):
     # Date user was created
     created_at = db.Column(db.DateTime(), default=datetime.utcnow)
 
-    # Date user was updated
-    updated_at = db.Column(db.DateTime(), default=datetime.utcnow)
-
     # Back-relationship with the Members table
     chats = db.relationship("Chat",
                             secondary=member_association,

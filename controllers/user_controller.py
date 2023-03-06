@@ -1,5 +1,3 @@
-from datetime import datetime, timedelta
-from flask_jwt_extended import create_access_token
 from flask import Blueprint, abort, request, jsonify
 from main import db, bcrypt
 from models.users import User
@@ -11,32 +9,15 @@ from helpers import validate_user_chat
 users = Blueprint("users", __name__, url_prefix="/users")
 
 
-@users.post("/")
-def create_user():
-    """CREATES USER"""
+@users.get("/")
+def get_users():
+    """GETS ALL USERS"""
 
-    # Load data from request body into a user schema
-    user_data = user_schema.load(request.json)
+    # Query database for all Users
+    users_list = db.session.execute(db.select(User)).scalars()
 
-    # Check if user already exists
-    if db.session.scalars(db.select(User).filter_by(
-            username=user_data["username"]).limit(1)).first():
-        return abort(400, description="Username already registered")
-
-    # Create a user object to load into db
-    user = User(
-        username=user_data["username"],
-        password=bcrypt.generate_password_hash(
-            user_data["password"]).decode("utf-8"))
-
-    # Add and commit user to db
-    db.session.add(user)
-    db.session.commit()
-
-    token = create_access_token(identity=str(user.id),
-                                expires_delta=timedelta(days=100))
-
-    return jsonify({"user": user.username, "token": token}), 201
+    # Return JSON of Users
+    return jsonify(users_schema.dump(users_list))
 
 
 @users.put("/")
@@ -54,7 +35,6 @@ def update_user(**kwargs):
     user.username = user_data["username"]
     user.password = bcrypt.generate_password_hash(
         user_data["password"]).decode("utf-8")
-    user.updated_at = datetime.utcnow()
 
     # Commit change to db
     db.session.commit()
@@ -75,17 +55,6 @@ def delete_user(**kwargs):
     db.session.commit()
 
     return jsonify(user_schema.dump(user))
-
-
-@users.get("/")
-def get_users():
-    """GETS ALL USERS"""
-
-    # Query database for all Users
-    users_list = db.session.execute(db.select(User)).scalars()
-
-    # Return JSON of Users
-    return jsonify(users_schema.dump(users_list))
 
 
 @users.get("/chats/")
