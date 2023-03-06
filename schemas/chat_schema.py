@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import timezone
 from marshmallow import fields, post_dump, pre_dump
 from main import ma
 
@@ -23,7 +23,7 @@ class ChatSchema(ma.Schema):
             tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y")
         return data
 
-    # Converts list of user dicts into list of username strings
+    # After dump converts list of user dicts into list of username strings
     @post_dump
     def deserialise_nested_dict(self, data, **kwargs):
         if "users" in data.keys():
