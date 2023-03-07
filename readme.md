@@ -39,53 +39,53 @@ To seed db with some data:
 flask db seed
 ```
 
-## Usage
-
-sdfasdf
-
-
-
 ## API endpoints documentation
+
+There are 15 endpoints in the Chit-Chat API:
 
 ### Authentication
 
-The authentication API endpoint allows users to log in to the application and obtain a JWT access token that can be used to access protected endpoints.  
+The `authentication` endpoint allows users to log in to the application and obtain a JWT access token that can be used to access protected endpoints.
 
-#### Endpoint URL
+**_Endpoint URL_**
 
 ```
-POST /api/auth/session
+POST /auth/session
 ```
 
 **Request JSON Parameters**
 
-| Parameter | Type   | Required | Description                            |
-| --------- | ------ | -------- | -------------------------------------- |
-| username  | string | Yes      | The user's username, it must be unique |
-| password  | string | Yes      | The user's password                    |
+| Parameter | Type   | Required | Domain     | Description                                                      |
+| --------- | ------ | -------- | ---------- | ---------------------------------------------------------------- |
+| email     | string | Yes      | 320 chars  | The user's email, not null, unique, validated for correct format |
+| username  | string | Yes      | 20 chars   | The user's username, not null                                    |
+| password  | string | Yes      | 8-20 chars | The user's password, not null                                    |
 
 
 **Response**
 
-The response payload will contain a JSON object with the following fields:
+The response payload will contain a JSON with the following fields:
 
-| Field    | Type   | Description                                                              |
-| -------- | ------ | ------------------------------------------------------------------------ |
-| username | string | The user's username                                                      |
-| token    | string | A JWT access token that can be used to access other protected endpoints. |
+| Field      | Type   | Description                                                             |
+| ---------- | ------ | ----------------------------------------------------------------------- |
+| token      | string | A JWT access token that can be used to access other protected endpoints |
+| token_type | string | The kind of token type, JWT is always 'Bearer'                          |
+| expires_in | int    | Seconds until token expires                                             |
 
 
 **Example Request**
 
 
 ```json
-POST /api/auth/session HTTP/1.1
-Host: 127
+POST /auth/session HTTP/1.1
+Host: 127.0.0.1
+Port: 5000
 Content-Type: application/json
 
-{
+{   
+    "email": "matt@email.com",
     "username": "Matt",
-    "password": "1234"
+    "password": "12345678"
 }
 ```
 
@@ -98,18 +98,226 @@ HTTP/1.1 200 OK
 Content-Type: application/json
 
 {
-    "access_token":"mF_9.B5f-4.1JqM",
+    "token":"mF_9.B5f-4.1JqM",
     "token_type":"Bearer",
     "expires_in":3600,
 }
 ```
-Error Responses
+
+**Error Responses**
 
 The authentication API endpoint may return the following error responses:
-HTTP Status Code	Error Message	Description
-400	Bad Request	One or more required parameters are missing or invalid.
-401	Unauthorized	The user's email or password is incorrect.
-500	Internal Server Error	An internal server error occurred.
-Authentication
 
-The authentication API endpoint does not require authentication. However, the access token obtained from this endpoint will be required to access other protected endpoints.
+| HTTP Status Code | Error Message | Description                    |
+| ---------------- | ------------- | ------------------------------ |
+| 401              | Unauthorized  | Incorrect username or password |
+		
+
+**Authentication**
+
+The `authentication` endpoint does not require authentication. However, the access token obtained from this endpoint will be required to access other protected endpoints.
+
+### Get users
+
+The `get users` endpoint allows users to view a list of all current users, including the chatrooms they are part.
+
+**_Endpoint URL_**
+
+```
+GET /users
+```
+
+**Request JSON Parameters**
+
+Not required
+
+
+**Response**
+
+The response payload will contain a list of JSONs with the following fields:
+
+| Field    | Type   | Description              |
+| -------- | ------ | ------------------------ |
+| username | string | The username of the user |
+
+
+**Example Request**
+
+
+```json
+GET /users HTTP/1.1
+Host: 127.0.0.1
+Port: 5000
+```
+
+
+**Example Response**
+
+
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[
+    {
+        "username": "Matt"
+    },
+    {
+        "username": "Beth"
+    }
+]
+```
+
+**Error Responses**
+
+The `get users` endpoint does not return any error responses:
+		
+
+**Authentication**
+
+The `get users` endpoint does not require authentication.
+
+
+### Create user
+
+The `create user` endpoint creates a user in the database and provides a JWT access token that can be used to access protected endpoints.
+
+**_Endpoint URL_**
+
+```
+POST /users
+```
+
+**Request JSON Parameters**
+
+| Parameter | Type   | Required | Domain     | Description                                                      |
+| --------- | ------ | -------- | ---------- | ---------------------------------------------------------------- |
+| email     | string | Yes      | 320 chars  | The user's email, not null, unique, validated for correct format |
+| username  | string | Yes      | 20 chars   | The user's username, not null                                    |
+| password  | string | Yes      | 8-20 chars | The user's password, not null                                    |
+
+
+**Response**
+
+The response payload will contain a JSON with the following fields:
+
+| Field      | Type   | Description                                                             |
+| ---------- | ------ | ----------------------------------------------------------------------- |
+| token      | string | A JWT access token that can be used to access other protected endpoints |
+| token_type | string | The kind of token type, JWT is always 'Bearer'                          |
+| expires_in | int    | Seconds until token expires                                             |
+
+
+**Example Request**
+
+```json
+POST /auth/session HTTP/1.1
+Host: 127.0.0.1
+Port: 5000
+Content-Type: application/json
+
+{   
+    "email": "beth@email.com",
+    "username": "Beth",
+    "password": "12345678"
+}
+```
+
+**Example Response**
+
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "token":"Ld_9.F3f-4.1JqM",
+    "token_type":"Bearer",
+    "expires_in":3600,
+}
+```
+
+**Error Responses**
+
+The authentication API endpoint may return the following error responses:
+
+| HTTP Status Code | Error Message | Description              |
+| ---------------- | ------------- | ------------------------ |
+| 400              | Bad Request   | Email already registered |
+		
+
+**Authentication**
+
+The `create user` endpoint does not require authentication. However, the access token obtained from this endpoint will be required to access other protected endpoints.
+
+
+### Update user
+
+The `update user` endpoint edits the authenticated users information in the database.
+
+**_Endpoint URL_**
+
+```
+PUT /users
+```
+
+**Request JSON Parameters**
+
+| Parameter | Type   | Required | Domain     | Description                                                      |
+| --------- | ------ | -------- | ---------- | ---------------------------------------------------------------- |
+| email     | string | Optional | 320 chars  | The user's email, not null, unique, validated for correct format |
+| username  | string | Optional | 20 chars   | The user's username, not null                                    |
+| password  | string | Optional | 8-20 chars | The user's password, not null                                    |
+
+
+**Response**
+
+The response payload will contain a JSON with the following fields:
+
+| Field      | Type   | Description                                                             |
+| ---------- | ------ | ----------------------------------------------------------------------- |
+| token      | string | A JWT access token that can be used to access other protected endpoints |
+| token_type | string | The kind of token type, JWT is always 'Bearer'                          |
+| expires_in | int    | Seconds until token expires                                             |
+
+
+**Example Request**
+
+```json
+POST /auth/session HTTP/1.1
+Host: 127.0.0.1
+Port: 5000
+Content-Type: application/json
+
+{   
+    "email": "beth@email.com",
+    "username": "Beth",
+    "password": "12345678"
+}
+```
+
+**Example Response**
+
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "token":"Ld_9.F3f-4.1JqM",
+    "token_type":"Bearer",
+    "expires_in":3600,
+}
+```
+
+**Error Responses**
+
+The authentication API endpoint may return the following error responses:
+
+| HTTP Status Code | Error Message | Description              |
+| ---------------- | ------------- | ------------------------ |
+| 400              | Bad Request   | Email already registered |
+		
+
+**Authentication**
+
+The `update user` endpoint does not require authentication. However, the access token obtained from this endpoint will be required to access other protected endpoints.
+
