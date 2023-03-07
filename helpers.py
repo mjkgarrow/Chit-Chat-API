@@ -33,7 +33,8 @@ def validate_user_chat(f):
         verify_jwt_in_request()
 
         # Find verified user in db
-        user = db.session.get(User, get_jwt_identity())
+        user = db.session.execute(db.select(User).filter_by(
+            id=get_jwt_identity())).scalar()
 
         if user is None:
             return abort(401, description="Invalid user or chat")
@@ -43,7 +44,8 @@ def validate_user_chat(f):
 
         # Verify chat exists in db
         if "chat_id" in kwargs:
-            chat = db.session.get(Chat, kwargs["chat_id"])
+            chat = db.session.execute(db.select(Chat).filter_by(
+                id=kwargs["chat_id"])).scalar()
 
             if chat is None:
                 return abort(401, description="Invalid user or chat")
@@ -61,15 +63,17 @@ def validate_user_chat(f):
 
         # Verify message exists in db
         if "message_id" in kwargs:
-            message = db.session.get(Message, kwargs["message_id"])
+            message = db.session.execute(db.select(Message).filter_by(
+                id=kwargs["message_id"])).scalar()
 
             if message is None:
                 return abort(401, description="Invalid user or message")
 
-            # Check user created message
+            # Check user created message, if not then unauthorised
             if message.user_id == user.id:
-                # Initialise message object in kwargs dict
                 kwargs["message"] = message
+            else:
+                return abort(401, description="You can only edit your own messages.")
 
         return f(*args, **kwargs)
 
