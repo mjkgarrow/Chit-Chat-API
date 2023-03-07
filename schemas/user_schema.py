@@ -28,8 +28,7 @@ class UserSchema(ma.Schema):
         min=8, max=20, error="Incorrect password length, must be between 8 and 20 characters."))
 
     # Displays a list of the user's chats
-    chats = fields.List(fields.Nested("ChatSchema",
-                                      only=("id", "chat_name",)))
+    chats = fields.List(fields.Nested("ChatSchema"))
 
 
 class ValidateUserSchema(ma.Schema):
