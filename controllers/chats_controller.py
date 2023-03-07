@@ -1,8 +1,9 @@
 from flask import Blueprint, abort, jsonify, request
+from marshmallow.exceptions import ValidationError
 from main import db
 from models.chats import Chat
 from models.users import User
-from schemas.chat_schema import chat_schema, chats_schema
+from schemas.chat_schema import chat_schema, chats_schema, validate_chat_schema
 from helpers import validate_user_chat
 
 
@@ -34,19 +35,22 @@ def get_chat_passkey(**kwargs):
 def create_chat(**kwargs):
     """CREATES A CHAT AND ADDS ALL PROVIDED USERS AS MEMBERS"""
 
-    # Load data from request body into a chat schema
-    chat_data = chat_schema.load(request.json)
+    # Try load data from request body into a validator chat schema
+    try:
+        chat_data = validate_chat_schema.load(request.json)
+    except ValidationError as error:
+        return jsonify(error.messages), 400
 
     # Create list of users to be added to chat
     users = [kwargs["user"]]
     for user in chat_data["users"]:
         # Don't duplicate the current user in the user list
-        if user["id"] == kwargs["user"].id:
+        if user == kwargs["user"].id:
             continue
 
         # If user doesn't exist in db, skip
         user = db.session.execute(db.select(User).filter_by(
-            id=user["id"])).scalar()
+            id=user)).scalar()
 
         if user is None:
             continue
@@ -75,11 +79,15 @@ def update_chat(**kwargs):
 
     chat = kwargs["chat"]
 
-    # Load data from request body into a chat schema
-    chat_data = chat_schema.load(request.json)
+    # Try load data from request body into a chat schema
+    try:
+        chat_data = chat_schema.load(request.json)
+    except ValidationError as error:
+        return jsonify(error.messages), 400
 
     # Create Chat instance, populate with request body data
-    chat.chat_name = chat_data["chat_name"]
+    if "chat_name" in chat_data:
+        chat.chat_name = chat_data["chat_name"]
 
     # Commit change to db
     db.session.commit()
@@ -115,12 +123,17 @@ def join_chat(**kwargs):
     # Get user object from decorator
     user = kwargs["user"]
 
-    # Load user submitted chat secret
-    chat_data = chat_schema.load(request.json)
+    # Try load data from request body into a chat schema
+    try:
+        chat_data = chat_schema.load(request.json)
+    except ValidationError as error:
+        return jsonify(error.messages), 400
 
-    # Check if user submitted chat secret matches the requested chat secret
-    if chat.chat_passkey != chat_data["chat_passkey"]:
-        return abort(401, description="Invalid user or passkey")
+    # Check if chatroom is private and passkeys match
+    if len(chat.chat_passkey) > 0:
+        if ("chat_passkey" in chat_data
+                and chat.chat_passkey != chat_data["chat_passkey"]):
+            return abort(401, description="Invalid user or passkey")
 
     # Add chat to user's list
     user.chats.append(chat)

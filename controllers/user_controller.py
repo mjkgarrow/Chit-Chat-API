@@ -5,7 +5,6 @@ from marshmallow.exceptions import ValidationError
 from main import db, bcrypt
 from models.users import User
 from schemas.user_schema import user_schema, users_schema, validate_user_schema
-from schemas.message_schema import messages_schema
 from helpers import validate_user_chat
 
 users = Blueprint("users", __name__, url_prefix="/users")
@@ -104,7 +103,7 @@ def update_user(**kwargs):
     if "password" in user_data:
         # Check if password is different, to show user the password was updated
         if not bcrypt.check_password_hash(user.password, user_data["password"]):
-            response["password"] = True
+            response["password_updated"] = True
 
         user.password = bcrypt.generate_password_hash(user_data["password"]
                                                       ).decode("utf-8")
@@ -115,8 +114,8 @@ def update_user(**kwargs):
     return jsonify(response)
 
 
-@ users.delete("/")
-@ validate_user_chat
+@users.delete("/")
+@validate_user_chat
 def delete_user(**kwargs):
     """DELETES USER"""
 
@@ -135,8 +134,8 @@ def delete_user(**kwargs):
     return jsonify(response)
 
 
-@ users.get("/chats/")
-@ validate_user_chat
+@users.get("/chats/")
+@validate_user_chat
 def get_user_chats(**kwargs):
     """GETS LIST OF CHATS USER IS MEMBER OF"""
 

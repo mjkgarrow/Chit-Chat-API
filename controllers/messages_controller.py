@@ -1,4 +1,5 @@
 from flask import Blueprint, abort, jsonify, request
+from marshmallow.exceptions import ValidationError
 from main import db
 from models.users import User
 from models.messages import Message
@@ -29,8 +30,11 @@ def create_message(**kwargs):
     user = kwargs["user"]
     chat = kwargs["chat"]
 
-    # Load request JSON
-    message_data = message_schema.load(request.json)
+    # Try load data from request body into a message schema
+    try:
+        message_data = message_schema.load(request.json)
+    except ValidationError as error:
+        return jsonify(error.messages), 400
 
     # Create message object
     message = Message(chat=chat,
@@ -58,8 +62,11 @@ def update_message(**kwargs):
     user = kwargs["user"]
     message = kwargs["message"]
 
-    # Load request JSON
-    message_data = message_schema.load(request.json)
+    # Try load data from request body into a message schema
+    try:
+        message_data = message_schema.load(request.json)
+    except ValidationError as error:
+        return jsonify(error.messages), 400
 
     # Verify user created message
     if message.user_id == user.id:
