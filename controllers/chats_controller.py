@@ -44,11 +44,12 @@ def create_chat(**kwargs):
         if user["id"] == kwargs["user"].id:
             continue
 
-        # Find verified user in db
-        user = db.session.get(User, user["id"])
+        # If user doesn't exist in db, skip
+        user = db.session.execute(db.select(User).filter_by(
+            id=user["id"])).scalar()
 
         if user is None:
-            return abort(401, description="Invalid user or chat")
+            continue
 
         users.append(user)
 
