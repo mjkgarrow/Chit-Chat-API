@@ -23,11 +23,21 @@ class ChatSchema(ma.Schema):
             tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y")
         return data
 
-    # After dump converts list of user dicts into list of username strings
-    @post_dump
-    def deserialise_nested_dict(self, data, **kwargs):
-        if "users" in data.keys():
-            data["users"] = [data["username"] for data in data["users"]]
+    # After dump converts list of users dict into list of username strings
+    @post_dump(pass_many=True)
+    def deserialise_nested_dict(self, data, many):
+        if many:
+            # Restructure user values to remove nesting
+            for d in data:
+                if "users" in d.keys():
+                    d["users"] = [datum["username"]
+                                  for datum in d["users"]]
+            # Sort chats by id so they are in chronological order
+            data = sorted(data, key=lambda d: d["id"])
+        else:
+            # Restructure user values to remove nesting
+            if "users" in data.keys():
+                data["users"] = [data["username"] for data in data["users"]]
         return data
 
 
