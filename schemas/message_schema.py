@@ -26,7 +26,7 @@ class MessageSchema(ma.Schema):
     # https://stackoverflow.com/questions/44162315/convert-object-when-serializing-it
     # Extracts value from nested dict and returns it
     @post_dump(pass_many=True)
-    def deserialise_nested_dict(self, data, many):
+    def serialise_nested_dict(self, data, many):
         # Check if there are many objects deserialised
         if many:
             # Restructure user values to remove nesting

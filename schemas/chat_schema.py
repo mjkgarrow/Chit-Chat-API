@@ -18,14 +18,14 @@ class ChatSchema(ma.Schema):
 
     # Before dump, convert utc time to local time
     @pre_dump
-    def convert_utc_datetime_to_local(self, data, **kwargs):
+    def convert_utc_to_local(self, data, **kwargs):
         data.created_at = data.created_at.replace(
             tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y")
         return data
 
     # After dump converts list of users dict into list of username strings
     @post_dump(pass_many=True)
-    def deserialise_nested_dict(self, data, many):
+    def serialise_nested_dict(self, data, many):
         if many:
             # Restructure user values to remove nesting
             for d in data:
