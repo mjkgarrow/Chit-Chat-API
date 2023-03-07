@@ -7,8 +7,11 @@ class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer(), primary_key=True)
 
+    # User's email
+    email = db.Column(db.String(320), nullable=False, unique=True)
+
     # User's username
-    username = db.Column(db.String(20), nullable=False, unique=True)
+    username = db.Column(db.String(20), nullable=False)
 
     # User's password
     password = db.Column(db.String(60), nullable=False)
@@ -19,8 +22,7 @@ class User(db.Model):
     # Back-relationship with the Members table
     chats = db.relationship("Chat",
                             secondary=member_association,
-                            back_populates="users",
-                            cascade="all, delete")
+                            back_populates="users")
 
     # Relationship with Messages table
     messages = db.relationship("Message",

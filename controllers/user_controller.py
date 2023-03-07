@@ -1,7 +1,10 @@
-from flask import Blueprint, jsonify, request
+from datetime import timedelta
+from flask import Blueprint, jsonify, abort, request
+from flask_jwt_extended import create_access_token
+from marshmallow.exceptions import ValidationError
 from main import db, bcrypt
 from models.users import User
-from schemas.user_schema import user_schema, users_schema
+from schemas.user_schema import user_schema, users_schema, verifyuser_schema
 from schemas.message_schema import messages_schema
 from helpers import validate_user_chat
 
@@ -20,6 +23,41 @@ def get_users():
     return jsonify(users_schema.dump(users_list))
 
 
+@users.post("/")
+def create_user():
+    """CREATES USER"""
+
+    # Try load data from request body into a user schema
+    try:
+        user_data = verifyuser_schema.load(request.json)
+    except ValidationError as error:
+        return jsonify(error.messages), 400
+
+    # Check if user already exists
+    if db.session.scalars(db.select(User).filter_by(
+            username=user_data["username"]).limit(1)).first():
+        return abort(400, description="Username already registered")
+
+    # Create a user object to load into db
+    user = User(email=user_data["email"],
+                username=user_data["username"],
+                password=bcrypt.generate_password_hash(user_data["password"]
+                                                       ).decode("utf-8"))
+
+    # Add and commit user to db
+    db.session.add(user)
+    db.session.commit()
+
+    token = create_access_token(identity=str(user.id),
+                                expires_delta=timedelta(days=1))
+
+    response = {"token": token,
+                "token_type": "Bearer",
+                "expires_in": 3600}
+
+    return jsonify(response), 201
+
+
 @users.put("/")
 @validate_user_chat
 def update_user(**kwargs):
@@ -28,13 +66,22 @@ def update_user(**kwargs):
     # Get user object from kwargs
     user = kwargs["user"]
 
-    # Load data from request
-    user_data = user_schema.load(request.json)
+    # Try load data from request body into a user schema
+    try:
+        user_data = user_schema.load(request.json)
+    except ValidationError as error:
+        return jsonify(error.messages), 400
 
-    # Fill out new director object
+    # Check if provided email is already being used
+    if user_data["email"] != user.email:
+        users_list = db.session.execute(db.select(User)).scalars()
+        if user_data["email"] in [user.email for user in users_list]:
+            return abort(401, description="Email already in use")
+
+    user.email = user_data["email"]
     user.username = user_data["username"]
-    user.password = bcrypt.generate_password_hash(
-        user_data["password"]).decode("utf-8")
+    user.password = bcrypt.generate_password_hash(user_data["password"]
+                                                  ).decode("utf-8")
 
     # Commit change to db
     db.session.commit()
