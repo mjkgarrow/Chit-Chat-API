@@ -30,9 +30,4 @@ class User(db.Model):
                                cascade="all, delete")
 
     def __repr__(self):
-        return f"<id: {self.id},username: {self.username}>"
-
-    def asdict(self):
-        return {"id": self.id,
-                "username": self.username,
-                "chats": self.chats}
+        return f"<id: {self.id}, username: {self.username}>"

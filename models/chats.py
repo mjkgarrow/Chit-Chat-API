@@ -26,10 +26,5 @@ class Chat(db.Model, dict):
                                backref="chat",
                                cascade="all, delete")
 
-    def asdict(self):
-        return {"id": self.id,
-                "chat_name": self.chat_name,
-                "users": self.users}
-
     def __repr__(self):
         return f"<id: {self.id}, chat_name: {self.chat_name}>"

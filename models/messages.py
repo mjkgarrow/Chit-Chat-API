@@ -22,10 +22,5 @@ class Message(db.Model):
     # Date message was created
     created_at = db.Column(db.DateTime(), default=datetime.utcnow)
 
-    def asdict(self):
-        return {"id": self.id,
-                "message": self.message,
-                "user": self.user_id}
-
     def __repr__(self):
         return f"<id: {self.id}, message: {self.message}, user: {self.user_id}>"
