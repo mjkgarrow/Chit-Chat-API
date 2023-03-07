@@ -28,12 +28,14 @@ def seed_db():
     """SEED TABLES"""
 
     # Create user instance
-    user1 = User(username="Matt",
-                 password=bcrypt.generate_password_hash("1234").decode('utf-8'))
+    user1 = User(email="matt@gmail.com",
+                 username="Matt",
+                 password=bcrypt.generate_password_hash("12345678").decode('utf-8'))
 
     # Create user instance
-    user2 = User(username="Beth",
-                 password=bcrypt.generate_password_hash("5678").decode('utf-8'))
+    user2 = User(email="beth@gmail.com",
+                 username="Beth",
+                 password=bcrypt.generate_password_hash("12345678").decode('utf-8'))
 
     # Add users to db and commit
     db.session.add(user1)
