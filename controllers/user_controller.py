@@ -19,7 +19,7 @@ def get_users():
     # Query database for all Users
     users_list = db.session.execute(db.select(User)).scalars()
 
-    # Return JSON of Users
+    # Return JSON of all users
     return jsonify(users_schema.dump(users_list))
 
 
@@ -55,6 +55,7 @@ def create_user():
                 "token_type": "Bearer",
                 "expires_in": 3600}
 
+    # Return JSON of JWT token info
     return jsonify(response), 201
 
 
@@ -86,6 +87,7 @@ def update_user(**kwargs):
     # Commit change to db
     db.session.commit()
 
+    # Return JSON of updated user
     return jsonify(user_schema.dump(user))
 
 
@@ -101,6 +103,7 @@ def delete_user(**kwargs):
     db.session.delete(user)
     db.session.commit()
 
+    # Return JSON of deleted User
     return jsonify(user_schema.dump(user))
 
 
@@ -109,6 +112,7 @@ def delete_user(**kwargs):
 def get_user_chats(**kwargs):
     """GETS LIST OF CHATS USER IS MEMBER OF"""
 
+    # Return JSON of user (including list of chats)
     return jsonify(user_schema.dump(kwargs["user"]))
 
 
@@ -149,6 +153,7 @@ def get_latest_messages(**kwargs):
                                     "user": {"username": username}
                                     })
 
+    # Return JSON of all user's latest messages on all chatrooms
     return jsonify(messages_schema.dump(latest_messages))
 
 
@@ -171,4 +176,5 @@ def get_all_messages(**kwargs):
                     message.chat_name = {"chat_name": chat.chat_name}
                     all_messages.append(message)
 
+    # Return JSON of all messages created by user
     return jsonify(messages_schema.dump(all_messages))

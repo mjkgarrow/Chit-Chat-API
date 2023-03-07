@@ -3,7 +3,7 @@ from flask_jwt_extended import create_access_token
 from flask import Blueprint, abort, jsonify, request
 from main import db, bcrypt
 from models.users import User
-from schemas.user_schema import user_schema
+from schemas.user_schema import verifyuser_schema
 
 
 auth = Blueprint("auth", __name__, url_prefix="/auth")
@@ -14,7 +14,7 @@ def signin_user():
     """SIGNS IN USER"""
 
     # Load data from request body into a user schema
-    user_data = user_schema.load(request.json)
+    user_data = verifyuser_schema.load(request.json)
 
     # Find user in db
     user = db.session.scalars(db.select(User).filter_by(
