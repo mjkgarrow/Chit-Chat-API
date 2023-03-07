@@ -21,7 +21,6 @@ def get_users():
 
     # Remove chats key from user lists as that is private information
     for user in users_list:
-        user.pop("id")
         user.pop("chats")
 
     # Return JSON of all users
@@ -99,13 +98,13 @@ def update_user(**kwargs):
     response = {"id": user.id,
                 "email": user.email,
                 "username": user.username,
-                "password": "not updated"}
+                "password_updated": False}
 
     # If a password key was provided, update password
     if "password" in user_data:
         # Check if password is different, to show user the password was updated
         if not bcrypt.check_password_hash(user.password, user_data["password"]):
-            response["password"] = "updated"
+            response["password"] = True
 
         user.password = bcrypt.generate_password_hash(user_data["password"]
                                                       ).decode("utf-8")
@@ -128,8 +127,12 @@ def delete_user(**kwargs):
     db.session.delete(user)
     db.session.commit()
 
+    # Generate clean list of chats user was member of
+    response = user_schema.dump(user)
+    response["chats"] = [chat["chat_name"] for chat in response["chats"]]
+
     # Return JSON of deleted User
-    return jsonify(user_schema.dump(user))
+    return jsonify(response)
 
 
 @ users.get("/chats/")
@@ -139,67 +142,3 @@ def get_user_chats(**kwargs):
 
     # Return JSON of user (including list of chats)
     return jsonify(user_schema.dump(kwargs["user"]))
-
-
-@ users.get("/latest_messages/")
-@ validate_user_chat
-def get_latest_messages(**kwargs):
-    """GETS LIST OF LATEST MESSAGES IN USER'S CHATS"""
-
-    user = kwargs["user"]
-
-    # Generate list of latest messages
-    latest_messages = []
-    for chat in user.chats:
-        # Check there are actual messages in the chat
-        if chat.messages:
-
-            # Get ID for latest message
-            message_id = chat.messages[-1].id
-
-            # Get the chat name
-            chat_name = next(found_chat.chat_name for found_chat in user.chats
-                             if found_chat.id == chat.messages[-1].chat_id)
-
-            # Get the username of the message creator
-            username = db.session.get(User, chat.messages[-1].user_id).username
-
-            # Only append latest messages from other people
-            if username == user.username:
-                continue
-
-            # Get the message content
-            message = chat.messages[-1].message
-
-            # Append all details to latest message
-            latest_messages.append({"id": message_id,
-                                    "chat_name": {"chat_name": chat_name},
-                                    "message": message,
-                                    "user": {"username": username}
-                                    })
-
-    # Return JSON of all user's latest messages on all chatrooms
-    return jsonify(messages_schema.dump(latest_messages))
-
-
-@ users.get("/all_messages/")
-@ validate_user_chat
-def get_all_messages(**kwargs):
-    """GETS LIST OF ALL MESSAGES CREATED BY USER"""
-
-    user = kwargs["user"]
-
-    # Generate list of latest messages
-    all_messages = []
-    for chat in user.chats:
-        # Check there are actual messages in the chat
-        if chat.messages:
-
-            # Get all messages created by the user
-            for message in chat.messages:
-                if message.user_id == user.id:
-                    message.chat_name = {"chat_name": chat.chat_name}
-                    all_messages.append(message)
-
-    # Return JSON of all messages created by user
-    return jsonify(messages_schema.dump(all_messages))
