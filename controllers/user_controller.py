@@ -4,10 +4,9 @@ from flask_jwt_extended import create_access_token
 from marshmallow.exceptions import ValidationError
 from main import db, bcrypt
 from models.users import User
-from schemas.user_schema import user_schema, users_schema, verifyuser_schema
+from schemas.user_schema import user_schema, users_schema, validate_user_schema
 from schemas.message_schema import messages_schema
 from helpers import validate_user_chat
-
 
 users = Blueprint("users", __name__, url_prefix="/users")
 
@@ -22,6 +21,7 @@ def get_users():
 
     # Remove chats key from user lists as that is private information
     for user in users_list:
+        user.pop("id")
         user.pop("chats")
 
     # Return JSON of all users
@@ -34,7 +34,7 @@ def create_user():
 
     # Try load data from request body into a user schema
     try:
-        user_data = verifyuser_schema.load(request.json)
+        user_data = validate_user_schema.load(request.json)
     except ValidationError as error:
         return jsonify(error.messages), 400
 
@@ -78,26 +78,46 @@ def update_user(**kwargs):
     except ValidationError as error:
         return jsonify(error.messages), 400
 
-    # Check if provided email is already being used
-    if user_data["email"] != user.email:
-        users_list = db.session.execute(db.select(User)).scalars()
-        if user_data["email"] in [user.email for user in users_list]:
-            return abort(401, description="Email already in use")
+    # If an email key was provided, update email
+    if "email" in user_data:
+        # Check if user is actually providing a different email
+        # (to prevent unneccessary db sessions)
+        if user_data["email"] != user.email:
 
-    user.email = user_data["email"]
-    user.username = user_data["username"]
-    user.password = bcrypt.generate_password_hash(user_data["password"]
-                                                  ).decode("utf-8")
+            # Check if provided email is already being used
+            if db.session.scalars(db.select(User).
+                                  filter_by(email=user_data["email"])).first():
+                return abort(401, description="Email already in use")
 
+            # Update user's email
+            user.email = user_data["email"]
+
+    # If a username key was provided, update username
+    if "username" in user_data:
+        user.username = user_data["username"]
+
+    response = {"id": user.id,
+                "email": user.email,
+                "username": user.username,
+                "password": "not updated"}
+
+    # If a password key was provided, update password
+    if "password" in user_data:
+        # Check if password is different, to show user the password was updated
+        if not bcrypt.check_password_hash(user.password, user_data["password"]):
+            response["password"] = "updated"
+
+        user.password = bcrypt.generate_password_hash(user_data["password"]
+                                                      ).decode("utf-8")
     # Commit change to db
     db.session.commit()
 
     # Return JSON of updated user
-    return jsonify(user_schema.dump(user))
+    return jsonify(response)
 
 
-@users.delete("/")
-@validate_user_chat
+@ users.delete("/")
+@ validate_user_chat
 def delete_user(**kwargs):
     """DELETES USER"""
 
@@ -112,8 +132,8 @@ def delete_user(**kwargs):
     return jsonify(user_schema.dump(user))
 
 
-@users.get("/chats/")
-@validate_user_chat
+@ users.get("/chats/")
+@ validate_user_chat
 def get_user_chats(**kwargs):
     """GETS LIST OF CHATS USER IS MEMBER OF"""
 
@@ -121,8 +141,8 @@ def get_user_chats(**kwargs):
     return jsonify(user_schema.dump(kwargs["user"]))
 
 
-@users.get("/latest_messages/")
-@validate_user_chat
+@ users.get("/latest_messages/")
+@ validate_user_chat
 def get_latest_messages(**kwargs):
     """GETS LIST OF LATEST MESSAGES IN USER'S CHATS"""
 
@@ -162,8 +182,8 @@ def get_latest_messages(**kwargs):
     return jsonify(messages_schema.dump(latest_messages))
 
 
-@users.get("/all_messages/")
-@validate_user_chat
+@ users.get("/all_messages/")
+@ validate_user_chat
 def get_all_messages(**kwargs):
     """GETS LIST OF ALL MESSAGES CREATED BY USER"""
 
