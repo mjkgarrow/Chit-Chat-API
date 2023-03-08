@@ -12,12 +12,16 @@ class MessageSchema(ma.Schema):
                   "user_id",
                   "created_at",
                   "user",
-                  "chat_name")
+                  "chat_name",
+                  "likes")
         load_only = ("chat_id",
                      "user_id")
 
     user = fields.Nested("UserSchema",
                          only=("username",))
+
+    likes = fields.List(fields.Nested("UserSchema",
+                                      only=("username",)))
 
     chat_name = fields.Nested("ChatSchema",
                               only=("chat_name",))
@@ -43,6 +47,13 @@ class MessageSchema(ma.Schema):
                 if "chat_name" in d:
                     d["chat_name"] = d["chat_name"]["chat_name"]
 
+                # Tally likes and list users who liked
+                if len(d["likes"]) > 0:
+                    d["likes"] = {"count": len(d["likes"]),
+                                  "users": [like["username"] for like in d["likes"]]}
+                else:
+                    d["likes"] = {}
+
             # Sort messages by id so they are in chronological order
             data = sorted(data, key=lambda d: d["id"])
 
@@ -60,6 +71,14 @@ class MessageSchema(ma.Schema):
             # Restructure chat_name values to remove nesting
             if "chat_name" in data:
                 data["chat_name"] = data["chat_name"]["chat_name"]
+
+            # Tally likes and list users who liked
+            if len(data["likes"]) > 0:
+                data["likes"] = {"count": len(data["likes"]),
+                                 "users": [like["username"] for
+                                           like in data["likes"]]}
+            else:
+                data["likes"] = {}
 
         return data
 

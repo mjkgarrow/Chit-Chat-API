@@ -166,3 +166,20 @@ def get_all_messages(**kwargs):
 
     # Return JSON of all messages created by user
     return jsonify(response)
+
+
+@messages.patch("/like/<int:like_message_id>")
+@validate_user_chat
+def like_message(**kwargs):
+    # Check message exists in db
+    message = db.session.execute(db.select(Message).filter_by(
+        id=kwargs["like_message_id"])).scalar()
+
+    if kwargs["user"] in message.likes:
+        message.likes.remove(kwargs["user"])
+    else:
+        message.likes.append(kwargs["user"])
+
+    db.session.commit()
+
+    return jsonify(message_schema.dump(message))

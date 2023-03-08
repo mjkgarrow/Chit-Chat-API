@@ -1,6 +1,7 @@
 from datetime import datetime
 from main import db
 from models.members import member_association
+from models.likes import likes_association
 
 
 class User(db.Model):
@@ -28,6 +29,11 @@ class User(db.Model):
     messages = db.relationship("Message",
                                backref="user",
                                cascade="all, delete")
+
+    likes = db.relationship("Message",
+                            secondary=likes_association,
+                            backref="likes",
+                            cascade="all, delete")
 
     def __repr__(self):
         return f"<id: {self.id}, username: {self.username}>"
