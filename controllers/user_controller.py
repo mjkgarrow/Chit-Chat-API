@@ -36,16 +36,26 @@ def get_user(**kwargs):
     if user.id != kwargs["id"]:
         return abort(401, description="Unauthorised to access that user")
 
+    # Create list of chats the user is a member of, showing all chat info
+    chats = []
+    for chat in user.chats:
+        chat_dict = {"id": chat.id,
+                     "chat_name": chat.chat_name,
+                     "created_at": chat.created_at.replace(
+                         tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y at %-I:%M:%S %p"),
+                     "message_count": len([message.id for message
+                                           in chat.messages]),
+                     "users": [user.username for user in chat.users]}
+        chats.append(chat_dict)
+
+    # Generate response dict
     response = {"id": user.id,
                 "username": user.username,
                 "created_at": user.created_at,
-                "chats": [{"id": chat.id,
-                           "chat_name": chat.chat_name,
-                           "users": [use.username for use in chat.users]} for chat in user.chats]}
+                "chats": chats}
 
     # Return JSON of user info
     return jsonify(response)
-    # return jsonify(user_schema.dump(kwargs["user"]))
 
 
 @users.post("/")
@@ -154,26 +164,4 @@ def delete_user(**kwargs):
     response["chats"] = [chat["chat_name"] for chat in response["chats"]]
 
     # Return JSON of deleted User
-    return jsonify(response)
-
-
-@users.get("/chats/")
-@validate_user_chat
-def get_user_chats(**kwargs):
-    """GETS LIST OF CHATS USER IS MEMBER OF"""
-    user = kwargs["user"]
-
-    # Create list of chats the user is a member of, showing all chat info
-    response = []
-    for chat in user.chats:
-        chat_dict = {"id": chat.id,
-                     "chat_name": chat.chat_name,
-                     "created_at": chat.created_at.replace(
-                         tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y at %-I:%M:%S %p"),
-                     "message_count": len([message.id for message
-                                           in chat.messages]),
-                     "users": [user.username for user in chat.users]}
-        response.append(chat_dict)
-
-    # Return JSON of user (including list of chats)
     return jsonify(response)

@@ -56,8 +56,8 @@ def login_user(data):
     return {"id": user_id, "header": header}
 
 
-def get_user_chats(chat_ids, header):
-    get_user_chats_response = requests.get(endpoint + "/users/chats/",
+def get_user(user_id, chat_ids, header):
+    get_user_chats_response = requests.get(endpoint + f"/users/{user_id}",
                                            headers=header,
                                            timeout=10)
 

@@ -1,6 +1,10 @@
 import unittest
 import requests
-from test_helpers import create_user, delete_user, create_chat, delete_chat, get_user_chats
+from test_helpers import (create_user,
+                          delete_user,
+                          create_chat,
+                          delete_chat,
+                          get_user)
 
 
 endpoint = "http://127.0.0.1:8002"
@@ -113,7 +117,7 @@ class Test_user_endpoints(unittest.TestCase):
 
         delete_user(data, user["header"])
 
-    def get_user_chats(self):
+    def get_user(self):
         # Create first user
         data1 = {"email": "matt@email.com",
                  "username": "Matt",
@@ -139,7 +143,7 @@ class Test_user_endpoints(unittest.TestCase):
         chat2 = create_chat(chat_data2, user2["header"])
 
         # Get list of user chats
-        get_user_chats([chat1["id"], chat2["id"]], user1["header"])
+        get_user(user1["id"], [chat1["id"], chat2["id"]], user1["header"])
 
         # Delete chats and users
         delete_chat(chat1['id'], user2["header"], chat_data1)
