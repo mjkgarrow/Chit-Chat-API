@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timezone, timedelta
 from flask import Blueprint, jsonify, abort, request
 from flask_jwt_extended import create_access_token
 from marshmallow.exceptions import ValidationError
@@ -24,6 +24,28 @@ def get_users():
 
     # Return JSON of all users
     return jsonify(users_list)
+
+
+@users.get("/<int:id>")
+@validate_user_chat
+def get_user(**kwargs):
+    """GETS USERS INFO"""
+
+    user = kwargs["user"]
+
+    if user.id != kwargs["id"]:
+        return abort(401, description="Unauthorised to access that user")
+
+    response = {"id": user.id,
+                "username": user.username,
+                "created_at": user.created_at,
+                "chats": [{"id": chat.id,
+                           "chat_name": chat.chat_name,
+                           "users": [use.username for use in chat.users]} for chat in user.chats]}
+
+    # Return JSON of user info
+    return jsonify(response)
+    # return jsonify(user_schema.dump(kwargs["user"]))
 
 
 @users.post("/")
@@ -139,6 +161,19 @@ def delete_user(**kwargs):
 @validate_user_chat
 def get_user_chats(**kwargs):
     """GETS LIST OF CHATS USER IS MEMBER OF"""
+    user = kwargs["user"]
+
+    # Create list of chats the user is a member of, showing all chat info
+    response = []
+    for chat in user.chats:
+        chat_dict = {"id": chat.id,
+                     "chat_name": chat.chat_name,
+                     "created_at": chat.created_at.replace(
+                         tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y at %-I:%M:%S %p"),
+                     "message_count": len([message.id for message
+                                           in chat.messages]),
+                     "users": [user.username for user in chat.users]}
+        response.append(chat_dict)
 
     # Return JSON of user (including list of chats)
-    return jsonify(user_schema.dump(kwargs["user"]))
+    return jsonify(response)

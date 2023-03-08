@@ -19,7 +19,7 @@ def create_user(data):
     token = create_user_response.json()["token"]
     header = {"Authorization": "Bearer " + token}
 
-    get_user_response = requests.get(endpoint + "/users/chats/",
+    get_user_response = requests.get(endpoint + f"/users/{user_id}",
                                      headers=header,
                                      timeout=10)
 
@@ -54,6 +54,18 @@ def login_user(data):
     header = {"Authorization": "Bearer " + token}
 
     return {"id": user_id, "header": header}
+
+
+def get_user_chats(chat_ids, header):
+    get_user_chats_response = requests.get(endpoint + "/users/chats/",
+                                           headers=header,
+                                           timeout=10)
+
+    # Verify chat was created successfully
+    assert get_user_chats_response.status_code == 200
+    for chat_id in chat_ids:
+        assert chat_id in [chat["id"] for chat
+                           in get_user_chats_response.json()]
 
 
 def create_chat(data, header):
