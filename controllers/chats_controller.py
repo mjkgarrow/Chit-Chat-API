@@ -1,3 +1,4 @@
+from datetime import timezone
 from flask import Blueprint, abort, jsonify, request
 from marshmallow.exceptions import ValidationError
 from main import db
@@ -131,8 +132,7 @@ def join_chat(**kwargs):
 
     # Check if chatroom is private and passkeys match
     if len(chat.chat_passkey) > 0:
-        if ("chat_passkey" in chat_data
-                and chat.chat_passkey != chat_data["chat_passkey"]):
+        if ("chat_passkey" not in chat_data) or (chat.chat_passkey != chat_data["chat_passkey"]):
             return abort(401, description="Invalid user or passkey")
 
     # Add chat to user's list
@@ -141,12 +141,20 @@ def join_chat(**kwargs):
     # Commit change to db
     db.session.commit()
 
+    response = {"id": chat.id,
+                "chat_name": chat.chat_name,
+                "created_at": chat.created_at.replace(
+                    tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y at %-I:%M:%S %p"),
+                "message_count": len([message.id for message
+                                      in chat.messages]),
+                "users": [user.username for user in chat.users]}
+
     # Return JSON of joined chat
-    return jsonify(chat_schema.dump(chat))
+    return jsonify(response)
 
 
-@chats.patch("/<int:chat_id>/leave")
-@validate_user_chat
+@ chats.patch("/<int:chat_id>/leave")
+@ validate_user_chat
 def leave_chat(**kwargs):
     """USER LEAVES A CHAT"""
 
