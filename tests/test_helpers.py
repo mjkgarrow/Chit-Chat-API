@@ -186,3 +186,21 @@ def get_all_message(message_ids, header):
 
         for mess_id in message_ids:
             assert mess_id in message_ids_response
+
+
+def like_message(message_id, header, user_name, liking):
+    url = endpoint + f"/messages/like/{message_id}"
+    like_messages_response = requests.patch(url,
+                                            headers=header,
+                                            timeout=10)
+
+    assert like_messages_response.status_code == 200
+
+    if len(like_messages_response.json()["likes"]) == 2:
+        if liking:
+            assert user_name in like_messages_response.json()["likes"]["users"]
+        else:
+            assert user_name not in like_messages_response.json()[
+                "likes"]["users"]
+
+    return like_messages_response.json()
