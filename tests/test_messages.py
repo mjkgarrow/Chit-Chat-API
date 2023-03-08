@@ -45,6 +45,34 @@ class Test_message_endpoints(unittest.TestCase):
         delete_user(data2, user2["header"])
         delete_user(data1, user1["header"])
 
+    def test_create_messages_error(self):
+        # Create first user
+        data1 = {"email": "matt@email.com",
+                 "username": "Matt",
+                 "password": "12345678"}
+        user1 = create_user(data1)
+
+        # Create second user
+        data2 = {"email": "beth@email.com",
+                 "username": "Beth",
+                 "password": "12345678"}
+        user2 = create_user(data2)
+
+        # Create new chat
+        chat_data = {"chat_name": "Close friends",
+                     "chat_passkey": "1234",
+                     "users": [user1["id"]]}
+        chat = create_chat(chat_data, user2["header"])
+
+        # User1 sends a message
+        message_data = {"message": "Testing my message route!"}
+        create_message(chat['id'], user1["header"], message_data)
+
+        # Delete the chat and users
+        delete_chat(chat['id'], user2["header"], chat_data)
+        delete_user(data2, user2["header"])
+        delete_user(data1, user1["header"])
+
     def test_delete_messages(self):
         # Create first user
         data1 = {"email": "matt@email.com",
