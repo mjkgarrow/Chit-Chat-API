@@ -17,11 +17,11 @@ class UserSchema(ma.Schema):
 
     # Validate email
     email = ma.String(validate=Email(
-        error="Incorrect email format"))
+        error="Incorrect email format."))
 
     # Validate username
     username = ma.String(validate=Length(
-        min=1, error="Username must be at least 1 character "))
+        min=1, error="Username must be at least 1 character."))
 
     # Validate password
     password = ma.String(validate=Length(

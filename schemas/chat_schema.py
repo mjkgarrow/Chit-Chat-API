@@ -79,11 +79,11 @@ class ValidateChatSchema(ma.Schema):
 
     # Validate chat name
     chat_name = ma.String(required=True, validate=Length(
-        min=1, max=20, error="Chat name must be 1 to 20 characters "))
+        min=1, max=20, error="Chat name must be 1 to 20 characters."))
 
     # Validate passkey
     chat_passkey = ma.String(required=True, validate=Length(
-        max=20, error="Passkey must be less than 20 characters "))
+        max=20, error="Passkey must be less than 20 characters."))
 
     users = ma.List(ma.Integer(), required=True)
 
