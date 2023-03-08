@@ -94,6 +94,7 @@ def update_user(**kwargs):
     if "username" in user_data:
         user.username = user_data["username"]
 
+    # Create response dict to return to user
     response = {"id": user.id,
                 "email": user.email,
                 "username": user.username,
