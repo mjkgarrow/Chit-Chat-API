@@ -30,7 +30,7 @@ class MessageSchema(ma.Schema):
         # Check if there are many objects serialised
         if many:
             for d in data:
-
+                # Display date in local time
                 if "created_at" in d:
                     d["created_at"] = datetime.fromisoformat(d["created_at"]).replace(
                         tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y at %-I:%M:%S %p")
