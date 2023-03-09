@@ -3,6 +3,7 @@ import requests
 from test_helpers import (create_user,
                           delete_user,
                           create_chat,
+                          get_chat_passkey,
                           delete_chat,
                           update_chat,
                           join_chat,
@@ -41,6 +42,29 @@ class Test_chat_endpoints(unittest.TestCase):
         delete_chat(chat['id'], user2["header"], chat_data)
 
         delete_user(data2, user2["header"])
+
+        delete_user(data1, user1["header"])
+
+    def test_get_chat_passkey(self):
+        # Create first user
+        data1 = {"email": "matt@email.com",
+                 "username": "Matt",
+                 "password": "12345678"}
+
+        user1 = create_user(data1)
+
+        # Create new chat and add first user to it
+        chat_data = {"chat_name": "Close friends",
+                     "chat_passkey": "12345",
+                     "users": []}
+
+        chat = create_chat(chat_data, user1["header"])
+
+        get_chat_passkey(chat["id"],
+                         user1["header"],
+                         chat_data["chat_passkey"])
+
+        delete_chat(chat['id'], user1["header"], chat_data)
 
         delete_user(data1, user1["header"])
 

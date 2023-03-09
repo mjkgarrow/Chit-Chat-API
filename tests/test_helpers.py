@@ -89,6 +89,17 @@ def create_chat(data, header):
             "chat_name": create_chat_response.json()["chat_name"]}
 
 
+def get_chat_passkey(chat_id, header, passkey):
+    chat_passkey_response = requests.get(endpoint + f"/chats/{chat_id}/passkey",
+                                         headers=header,
+                                         timeout=10)
+
+    # Verify chat was created successfully
+    assert chat_passkey_response.status_code == 200
+    assert chat_passkey_response.json()["chat_passkey"] == passkey
+    return chat_passkey_response.json()
+
+
 def delete_chat(chat_id, header, data):
     delete_chat_response = requests.delete(endpoint +
                                            f"/chats/{chat_id}",
