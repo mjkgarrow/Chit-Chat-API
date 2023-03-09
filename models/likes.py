@@ -2,7 +2,7 @@ from main import db
 
 
 likes_association = db.Table("likes",
-                             # The ID of the chat the user is part of
+                             # The ID of the message
                              db.Column("message_id",
                                        db.ForeignKey("messages.id"),
                                        nullable=False),

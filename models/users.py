@@ -30,10 +30,12 @@ class User(db.Model):
                                backref="user",
                                cascade="all, delete")
 
+    # Relationship with Likes table
     likes = db.relationship("Message",
                             secondary=likes_association,
                             backref="likes",
                             cascade="all, delete")
 
+    # The object representation if printed
     def __repr__(self):
         return f"<id: {self.id}, username: {self.username}>"
