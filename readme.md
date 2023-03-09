@@ -9,35 +9,36 @@ Chit-Chat is a CRUD RESTful API built with Flask and running on a PostgreSQL dat
 
 ## Setup
 
-To create the required PostgreSQL db/db_user run the bash script `run_api.sh`, providing a name of the PostgreSQL superuser to grant access to the psql terminal. This script will also create the db tables:
+For first time setup run `run_api.sh`, which creates the database, makes a virtual environment, installs requirements and runs the flask API. Use the following flags and arguments:
+
+
+| Flag | Required | Argument    | Defaul value             | Description                                                                     |
+| ---- | -------- | ----------- | ------------------------ | ------------------------------------------------------------------------------- |
+| -u   | Yes      | Superuser   | None                     | The PostgreSQL superuser to log in to the `psql` terminal and create a database |
+| -s   | Optional | API_secret  | `"chit-chat secret key"` | A secret key of your choice (this will determine the JWT hashing signature)     |
+| -p   | Optional | Port_number | `5000`                   | The port to run the local server on, optional (default is 5000)                 |
+
+
+**_Example:_**
 
 ```
-./run_api.sh <Superuser>
+./run_api.sh -u Matt -s "super secret key" -p 8000
 ```
 
-To activate the Flask server:
+If the virtual environment is activated and requirements installed already (and .env and .flaskenv set up), you can run the local Flask server using:
 
 ```
 flask run
 ```
 
-To drop tables from db:
+Here are some CLI commands to manage the database:
 
+```bash
+flask db drop       # To drop tables from db
+flask db create     # To create tables in db
+flask db seed       # To seed db with some data
 ```
-flask db drop
-```
-
-To create tables in db:
-
-```
-flask db create
-```
-
-To seed db with some data:
-
-```
-flask db seed
-```
+`run_api.sh` can be run again to start the server, though **_WARNING_** it will drop all tables and restart the server.
 
 ## API endpoints documentation
 
@@ -609,7 +610,6 @@ Content-Type: application/json
     "chat_passkey": "1234",
     "users": [1,3,6]
 }
-
 ```
 
 
@@ -902,7 +902,6 @@ Content-Type: application/json
 {
     "chat_passkey": "12345"
 }
-
 ```
 
 **Example Response**
@@ -921,7 +920,6 @@ Content-Type: application/json
         "Beth"
     ]
 }
-
 ```
 
 **Error Responses**
@@ -990,7 +988,6 @@ Content-Type: application/json
         "Private chat"
     ]
 }
-
 ```
 
 **Error Responses**
@@ -1015,23 +1012,14 @@ The `leave chat` endpoint requires a valid JWT access token in the authorisation
 <br>
 <p style="text-align: center; font-size: 20px; color:white;font-weight:bold;">MESSAGES</p>
 
+### Get all chat messages
 
-
-
-
-
-
-
-
-
-### Get user's latest messages
-
-The `get user's latest messages` endpoint lists all last message in all the chats where the authenticated user is a member, not including their own. It requires a valid JWT to be submitted in an authorisation header.
+The `get all chat messages` endpoint lists all messages in all a chat where the authenticated user is a member. It requires a valid JWT to be submitted in an authorisation header.
 
 **_Endpoint URL_**
 
 ```
-GET /users/latest_messages/
+GET /messages/chat/<chat_id>
 ```
 
 **Request JSON Parameters**
@@ -1041,19 +1029,104 @@ Not required.
 
 **Response**
 
-The response payload will contain a JSON with the following fields:
+The response payload will contain a list of JSONs, each  with the following fields:
 
-| Field    | Type          | Description                                                                                   |
-| -------- | ------------- | --------------------------------------------------------------------------------------------- |
-| id       | int           | User's ID                                                                                     |
-| username | string        | User's username                                                                               |
-| chats    | list of dicts | A list of chat dictionaries in the form: `{"id": int:chat_id, "chat_name": string:chat name}` |
+| Field      | Type   | Description                                                                                                                                       |
+| ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id         | int    | The message ID                                                                                                                                    |
+| message    | string | The message content                                                                                                                               |
+| created_at | string | The date the message was sent                                                                                                                     |
+| users      | string | The username of the message sender                                                                                                                |
+| likes      | dict   | A dict in the form: `{"count": int, "users": list}`, where `count` is the number of likes and `users` is the list of users who liked the message. |
 
 
 **Example Request**
 
 ```json
-POST /auth/session HTTP/1.1
+POST /messages/chat/1 HTTP/1.1
+Host: 127.0.0.1
+Port: 5000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIXVCJ9TJV...r7E20RMHrHDcEfxjoYZgeFONFh7HgQ
+```
+
+**Example Response**
+
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[
+    {
+        "id": 1,
+        "message": "Hey! Wazzup?",
+        "created_at": "March 09, 2023 at 10:09:01 PM",
+        "user": "Matt",
+        "likes": {
+            "count": 1,
+            "users": [
+                "Beth",
+                "Rohan"
+            ]
+        }
+
+    },
+    {
+        "id": 2,
+        "message": "Not much dawg",
+        "created_at": "March 09, 2023 at 10:09:04 PM",
+        "user": "Beth",
+        "likes": {}
+    }
+]
+```
+
+**Error Responses**
+
+The `get all chat messages` endpoint may return the following error responses if the user is not correctly authenticated
+
+| HTTP Status Code | Error Message | Description          |
+| ---------------- | ------------- | -------------------- |
+| 401              | Unauthorised  | Invalid user or chat |
+		
+
+**Authentication**
+
+The `get all chat messages` endpoint requires a valid JWT to be provided in the authorisation header.
+
+
+### Get all user's messages
+
+The `get all user's messages` endpoint lists all the messages sent by the authenticated user. It requires a valid JWT to be submitted in an authorisation header.
+
+**_Endpoint URL_**
+
+```
+GET /messages/all_messages/
+```
+
+**Request JSON Parameters**
+
+Not required.
+
+
+**Response**
+
+The response payload will contain a list of JSONs with the following fields:
+
+| Field      | Type   | Description                                                                                                                                       |
+| ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id         | int    | The message ID                                                                                                                                    |
+| message    | string | The message content                                                                                                                               |
+| created_at | string | The date the message was sent                                                                                                                     |
+| chat_name  | string | The name of the chat the message was sent in                                                                                                      |
+| users      | string | The username of the message sender                                                                                                                |
+| likes      | dict   | A dict in the form: `{"count": int, "users": list}`, where `count` is the number of likes and `users` is the list of users who liked the message. |
+
+
+**Example Request**
+
+```json
+POST /messages/latest_messages/ HTTP/1.1
 Host: 127.0.0.1
 Port: 5000
 Authorization: Bearer eyJhbGciOiJIUzI1NiIXVCJ9TJV...r7E20RMHrHDcEfxjoYZgeFONFh7HgQ
@@ -1068,15 +1141,27 @@ Content-Type: application/json
 [
     {
         "id": 2,
-        "message": "Not much",
-        "user": "Beth",
-        "chat_name": "Close friends"
-    },
-        {
-        "id": 4,
-        "message": "hey, what's up?",
-        "user": "Tim",
-        "chat_name": "Close friends"
+        "message": "See you on the weekend",
+        "created_at": "Thu, 09 Mar 2023 11:16:48 PM",
+        "chat_name": "Besties",
+        "user": "Matt",
+        "likes": {
+            "count": 1,
+            "users": [
+                "Beth"
+            ]
+        }
+    }
+    {
+        "id": 5,
+        "message": "Anyone want to have dinner this weekend?",
+        "created_at": "Wed, 08 Mar 2023 12:46:12 PM",
+        "chat_name": "Family",
+        "user": "Matt",
+        "likes": {
+            "count": 0,
+            "users": []
+        }
     }
 ]
 ```
@@ -1093,4 +1178,403 @@ The `get user's latest messages` endpoint may return the following error respons
 **Authentication**
 
 The `get user's latest messages` endpoint requires a valid JWT to be provided in the authorisation header.
+
+
+### Get user's latest messages
+
+The `get user's latest messages` endpoint lists the lastest message in all the chats where the authenticated user is a member. It requires a valid JWT to be submitted in an authorisation header.
+
+**_Endpoint URL_**
+
+```
+GET /messages/latest_messages/
+```
+
+**Request JSON Parameters**
+
+Not required.
+
+
+**Response**
+
+The response payload will contain a list of JSONs with the following fields:
+
+| Field      | Type   | Description                                                                                                                                       |
+| ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id         | int    | The message ID                                                                                                                                    |
+| message    | string | The message content                                                                                                                               |
+| created_at | string | The date the message was sent                                                                                                                     |
+| chat_name  | string | The name of the chat the message was sent in                                                                                                      |
+| users      | string | The username of the message sender                                                                                                                |
+| likes      | dict   | A dict in the form: `{"count": int, "users": list}`, where `count` is the number of likes and `users` is the list of users who liked the message. |
+
+
+**Example Request**
+
+```json
+POST /messages/latest_messages/ HTTP/1.1
+Host: 127.0.0.1
+Port: 5000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIXVCJ9TJV...r7E20RMHrHDcEfxjoYZgeFONFh7HgQ
+```
+
+**Example Response**
+
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[
+    {
+        "id": 2,
+        "message": "See you on the weekend",
+        "created_at": "Thu, 09 Mar 2023 11:16:48 PM",
+        "chat_name": "Besties",
+        "user": "Matt",
+        "likes": {
+            "count": 1,
+            "users": [
+                "Beth"
+            ]
+        }
+    }
+    {
+        "id": 6,
+        "message": "What are you up to?",
+        "created_at": "Wed, 08 Mar 2023 12:46:12 PM",
+        "chat_name": "Family",
+        "user": "Tim",
+        "likes": {
+            "count": 0,
+            "users": []
+        }
+    }
+]
+```
+
+**Error Responses**
+
+The `get user's latest messages` endpoint may return the following error responses if the user is not correctly authenticated
+
+| HTTP Status Code | Error Message | Description          |
+| ---------------- | ------------- | -------------------- |
+| 401              | Unauthorised  | Invalid user or chat |
+		
+
+**Authentication**
+
+The `get user's latest messages` endpoint requires a valid JWT to be provided in the authorisation header.
+
+
+### Create message
+
+The `create message` endpoint allows an authenticated user to create a message in a chat. It requires a valid JWT to be submitted in an authorisation header.
+
+**_Endpoint URL_**
+
+```
+POST /chats/
+```
+
+**Request JSON Parameters**
+
+| Parameter | Type   | Required | Domain     | Description         |
+| --------- | ------ | -------- | ---------- | ------------------- |
+| message   | string | Yes      | 5000 chars | The message content |
+
+
+**Response**
+
+The response payload will contain a JSON with the following fields:
+
+| Field      | Type   | Description                                                                                                                                       |
+| ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id         | int    | The message ID                                                                                                                                    |
+| message    | string | The message content                                                                                                                               |
+| created_at | string | The date the message was sent                                                                                                                     |
+| chat_name  | string | The name of the chat the message was sent in                                                                                                      |
+| users      | string | The username of the message sender                                                                                                                |
+| likes      | dict   | A dict in the form: `{"count": int, "users": list}`, where `count` is the number of likes and `users` is the list of users who liked the message. |
+
+
+**Example Request**
+
+
+```json
+GET /chats/ HTTP/1.1
+Host: 127.0.0.1
+Port: 5000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIXVCJ9TJV...r7E20RMHrHDcEfxjoYZgeFONFh7HgQ
+Content-Type: application/json
+
+{
+    "message": "Hey! Wazzup??"
+}
+```
+
+**Example Response**
+
+```json
+HTTP/1.1 201 CREATED
+Content-Type: application/json
+
+{
+    "id": 11,
+    "message": "Hey! Wazzup??",
+    "created_at": "March 09, 2023 at 11:02:15 PM",
+    "user": "Matt",
+    "chat_name": "Close friends",
+    "likes": {
+        "count": 0,
+        "users": []
+    }
+}
+```
+
+**Error Responses**
+
+The `create message` endpoint may return the following error responses:
+
+| HTTP Status Code | Error Message | Description                                         |
+| ---------------- | ------------- | --------------------------------------------------- |
+| 400              | Bad Request   | Message is too long, must be under 5000 characters. |
+| 401              | Unauthorised  | Invalid user or chat                                |
+
+**Authentication**
+
+The `create message` endpoint requires a valid JWT to be provided in the authorisation header.
+
+### Update message
+
+The `update message` endpoint allows an authenticated user to update the requested message, if they were the creator. It requires a valid JWT to be submitted in an authorisation header.
+
+**_Endpoint URL_**
+
+```
+PUT /messages/<message_id>
+```
+
+**Request JSON Parameters**
+
+| Parameter | Type   | Required | Domain     | Description                 |
+| --------- | ------ | -------- | ---------- | --------------------------- |
+| message   | string | Yes      | 5000 chars | The updated message content |
+
+
+**Response**
+
+The response payload will contain a JSON with the following fields:
+
+| Field      | Type   | Description                                                                                                                                       |
+| ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id         | int    | The message ID                                                                                                                                    |
+| message    | string | The message content                                                                                                                               |
+| created_at | string | The date the message was sent                                                                                                                     |
+| chat_name  | string | The name of the chat the message was sent in                                                                                                      |
+| users      | string | The username of the message sender                                                                                                                |
+| likes      | dict   | A dict in the form: `{"count": int, "users": list}`, where `count` is the number of likes and `users` is the list of users who liked the message. |
+
+
+**Example Request**
+
+
+```json
+original message:
+
+{
+    "id": 11,
+    "message": "Hey! Wazzup??",
+    "created_at": "March 09, 2023 at 11:02:15 PM",
+    "user": "Matt",
+    "chat_name": "Close friends",
+    "likes": {
+        "count": 0,
+        "users": []
+    }
+}
+
+PUT /messages/11 HTTP/1.1
+Host: 127.0.0.1
+Port: 5000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIXVCJ9TJV...r7E20RMHrHDcEfxjoYZgeFONFh7HgQ
+Content-Type: application/json
+
+{
+    "message": "Hey! What is up??"
+}
+```
+
+**Example Response**
+
+```json
+HTTP/1.1 201 CREATED
+Content-Type: application/json
+
+{
+    "id": 11,
+    "message": "Hey! What is up??",
+    "created_at": "March 09, 2023 at 11:02:15 PM",
+    "user": "Matt",
+    "chat_name": "Close friends",
+    "likes": {
+        "count": 0,
+        "users": []
+    }
+}
+```
+
+**Error Responses**
+
+The `update message` endpoint may return the following error responses:
+
+| HTTP Status Code | Error Message | Description                                         |
+| ---------------- | ------------- | --------------------------------------------------- |
+| 400              | Bad Request   | Message is too long, must be under 5000 characters. |
+| 401              | Unauthorised  | Invalid user or chat                                |
+
+**Authentication**
+
+The `update message` endpoint requires a valid JWT to be provided in the authorisation header.
+
+### Like message
+
+The `like message` endpoint likes or unlikes the requested message - if the user has already liked the message this route will unlike it and vice versa. It requires a valid JWT to be submitted in an authorisation header.
+
+**_Endpoint URL_**
+
+```
+DELETE /messages/<message_id>/like
+```
+
+**Request JSON Parameters**
+
+Not required.
+
+**Response**
+
+The response payload will contain a JSON with the following fields:
+
+| Field      | Type   | Description                                                                                                                                       |
+| ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id         | int    | The message ID                                                                                                                                    |
+| message    | string | The message content                                                                                                                               |
+| created_at | string | The local time the message was sent                                                                                                               |
+| chat_name  | string | The name of the chat the message was sent in                                                                                                      |
+| users      | string | The username of the message sender                                                                                                                |
+| likes      | dict   | A dict in the form: `{"count": int, "users": list}`, where `count` is the number of likes and `users` is the list of users who liked the message. |
+
+**Example Request**
+
+```json
+DELETE /messages/11 HTTP/1.1
+Host: 127.0.0.1
+Port: 5000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIXVCJ9TJV...r7E20RMHrHDcEfxjoYZgeFONFh7HgQ
+```
+
+**Example Response**
+
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "id": 11,
+    "message": "Hey! Wazzup??",
+    "created_at": "March 09, 2023 at 11:02:15 PM",
+    "user": "Matt",
+    "chat_name": "Close friends",
+    "likes": {
+        "count": 1,
+        "users": [
+            "Beth"
+        ]
+    }
+}
+```
+
+**Error Responses**
+
+The `like message` endpoint may return the following error responses if the user is not correctly authenticated
+
+| HTTP Status Code | Error Message | Description          |
+| ---------------- | ------------- | -------------------- |
+| 401              | Unauthorised  | Invalid user or chat |
+		
+
+**Authentication**
+
+The `like message` endpoint requires a valid JWT access token in the authorisation header.
+
+### Delete message
+
+The `delete message` endpoint deletes the requested message if it was created by the authenticated user. It requires a valid JWT to be submitted in an authorisation header.
+
+**_Endpoint URL_**
+
+```
+DELETE /messages/<message_id>
+```
+
+**Request JSON Parameters**
+
+Not required.
+
+**Response**
+
+The response payload will contain a JSON with the following fields:
+
+| Field      | Type   | Description                                                                                                                                       |
+| ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id         | int    | The message ID                                                                                                                                    |
+| message    | string | The message content                                                                                                                               |
+| created_at | string | The date the message was sent                                                                                                                     |
+| chat_name  | string | The name of the chat the message was sent in                                                                                                      |
+| users      | string | The username of the message sender                                                                                                                |
+| likes      | dict   | A dict in the form: `{"count": int, "users": list}`, where `count` is the number of likes and `users` is the list of users who liked the message. |
+
+**Example Request**
+
+```json
+DELETE /messages/11 HTTP/1.1
+Host: 127.0.0.1
+Port: 5000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIXVCJ9TJV...r7E20RMHrHDcEfxjoYZgeFONFh7HgQ
+```
+
+**Example Response**
+
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "id": 11,
+    "message": "Hey! Wazzup??",
+    "created_at": "March 09, 2023 at 11:02:15 PM",
+    "user": "Matt",
+    "chat_name": "Close friends",
+    "likes": {
+        "count": 0,
+        "users": []
+    }
+}
+```
+
+**Error Responses**
+
+The `delete message` endpoint may return the following error responses if the user is not correctly authenticated
+
+| HTTP Status Code | Error Message | Description          |
+| ---------------- | ------------- | -------------------- |
+| 401              | Unauthorised  | Invalid user or chat |
+		
+
+**Authentication**
+
+The `delete message` endpoint requires a valid JWT access token in the authorisation header.
+
+---
+
+###
 
