@@ -1,3 +1,4 @@
+from datetime import timezone, datetime
 from flask import Blueprint, abort, jsonify, request
 from marshmallow.exceptions import ValidationError
 from main import db
@@ -109,35 +110,37 @@ def get_latest_messages(**kwargs):
     for chat in user.chats:
         # Check there are actual messages in the chat
         if chat.messages:
+            # Get the username of the message creator
+            username = db.session.get(User, chat.messages[-1].user_id).username
 
-            # Get ID for latest message
-            message_id = chat.messages[-1].id
+            # # Only append latest messages from other people
+            # if username == user.username:
+            #     continue
 
             # Get the chat name
             chat_name = next(found_chat.chat_name for found_chat in user.chats
                              if found_chat.id == chat.messages[-1].chat_id)
 
-            # chat_name = chat.chat_name
+            # Count the likes and get list of users who liked the message
+            likes_count = len(chat.messages[-1].likes)
+            users = [user.username for user in chat.messages[-1].likes]
 
-            # Get the username of the message creator
-            username = db.session.get(User, chat.messages[-1].user_id).username
+            # Create local time creation date
+            created_at = chat.messages[-1].created_at.replace(
+                tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y at %-I:%M:%S %p")
 
-            # Only append latest messages from other people
-            if username == user.username:
-                continue
-
-            # Get the message content
-            message = chat.messages[-1].message
-
-            # Append all details to latest message
-            latest_messages.append({"id": message_id,
-                                    "chat_name": {"chat_name": chat_name},
-                                    "message": message,
-                                    "user": {"username": username},
-                                    "sent_at": chat.messages[-1].created_at})
+            # Append all details to a latest message dict
+            latest_messages.append({"id": chat.messages[-1].id,
+                                    "message": chat.messages[-1].message,
+                                    "created_at": created_at,
+                                    "chat_name": chat_name,
+                                    "user": username,
+                                    "likes": {"count": likes_count,
+                                              "users": users}
+                                    })
 
     # Return JSON of all user's latest messages on all chatrooms
-    return jsonify(messages_schema.dump(latest_messages))
+    return jsonify(latest_messages)
 
 
 @messages.get("/all_messages/")
@@ -168,7 +171,7 @@ def get_all_messages(**kwargs):
     return jsonify(response)
 
 
-@messages.patch("/like/<int:like_message_id>")
+@messages.patch("/<int:like_message_id>/like/")
 @validate_user_chat
 def like_message(**kwargs):
     # Check message exists in db

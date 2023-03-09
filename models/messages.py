@@ -8,7 +8,7 @@ class Message(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
 
     # Message text content
-    message = db.Column(db.String(), nullable=False)
+    message = db.Column(db.String(5000), nullable=False)
 
     # Member ID of the user that sent the message
     chat_id = db.Column(db.Integer(),

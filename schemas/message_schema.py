@@ -1,5 +1,6 @@
 from datetime import timezone, datetime
-from marshmallow import fields, pre_dump, post_dump
+from marshmallow import fields, post_dump
+from marshmallow.validate import Length
 from main import ma
 
 
@@ -16,6 +17,10 @@ class MessageSchema(ma.Schema):
                   "likes")
         load_only = ("chat_id",
                      "user_id")
+
+    # Validate message is present and correct length
+    message = ma.String(required=True, validate=Length(
+        max=5000, error="Message is too long, must be under 5000 characters."))
 
     user = fields.Nested("UserSchema",
                          only=("username",))
@@ -52,7 +57,8 @@ class MessageSchema(ma.Schema):
                     d["likes"] = {"count": len(d["likes"]),
                                   "users": [like["username"] for like in d["likes"]]}
                 else:
-                    d["likes"] = {}
+                    d["likes"] = {"count": 0,
+                                  "users": []}
 
             # Sort messages by id so they are in chronological order
             data = sorted(data, key=lambda d: d["id"])
@@ -78,7 +84,8 @@ class MessageSchema(ma.Schema):
                                  "users": [like["username"] for
                                            like in data["likes"]]}
             else:
-                data["likes"] = {}
+                data["likes"] = {"count": 0,
+                                 "users": []}
 
         return data
 
