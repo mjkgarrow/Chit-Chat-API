@@ -1,6 +1,11 @@
+import os
 import requests
 import jwt
+from dotenv import load_dotenv
 
+load_dotenv()
+
+secret_key = os.getenv("SECRET_KEY")
 endpoint = "http://127.0.0.1:8002"
 
 
@@ -13,7 +18,7 @@ def create_user(data):
     assert "token" in create_user_response.json()
 
     user_id = jwt.decode(jwt=create_user_response.json()["token"],
-                         key='chit chat secret key',
+                         key=secret_key,
                          algorithms=["HS256"])["sub"]
 
     token = create_user_response.json()["token"]
@@ -47,7 +52,7 @@ def login_user(data):
     assert "token" in login_user_response.json()
 
     user_id = jwt.decode(jwt=login_user_response.json()["token"],
-                         key='chit chat secret key',
+                         key=secret_key,
                          algorithms=["HS256"])["sub"]
 
     token = login_user_response.json()["token"]
