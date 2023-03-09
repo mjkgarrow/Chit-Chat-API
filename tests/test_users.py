@@ -4,10 +4,8 @@ from test_helpers import (create_user,
                           delete_user,
                           create_chat,
                           delete_chat,
-                          get_user)
-
-
-endpoint = "http://127.0.0.1:8002"
+                          get_user,
+                          endpoint)
 
 
 class Test_user_endpoints(unittest.TestCase):
@@ -15,6 +13,40 @@ class Test_user_endpoints(unittest.TestCase):
         response = requests.get(endpoint, timeout=10)
         status_code = response.status_code
         assert status_code == 200
+
+    def test_get_user_info(self):
+        # Create first user
+        data1 = {"email": "matt@email.com",
+                 "username": "Matt",
+                 "password": "12345678"}
+        user1 = create_user(data1)
+
+        # Create second user
+        data2 = {"email": "beth@email.com",
+                 "username": "Beth",
+                 "password": "12345678"}
+        user2 = create_user(data2)
+
+        # Create new chat and add first user to it
+        chat_data1 = {"chat_name": "Chat 1",
+                      "chat_passkey": "",
+                      "users": [user1["id"]]}
+        chat1 = create_chat(chat_data1, user2["header"])
+
+        # Create second chat
+        chat_data2 = {"chat_name": "Chat 2",
+                      "chat_passkey": "",
+                      "users": [user1["id"]]}
+        chat2 = create_chat(chat_data2, user2["header"])
+
+        # Get list of user chats
+        get_user(user1["id"], [chat1["id"], chat2["id"]], user1["header"])
+
+        # Delete chats and users
+        delete_chat(chat1['id'], user2["header"], chat_data1)
+        delete_chat(chat2['id'], user2["header"], chat_data2)
+        delete_user(data2, user2["header"])
+        delete_user(data1, user1["header"])
 
     def test_create_delete_user(self):
         data = {"email": "matt@email.com",
@@ -116,40 +148,6 @@ class Test_user_endpoints(unittest.TestCase):
             "password"] == ["Incorrect password length, must be between 8 and 20 characters."]
 
         delete_user(data, user["header"])
-
-    def get_user(self):
-        # Create first user
-        data1 = {"email": "matt@email.com",
-                 "username": "Matt",
-                 "password": "12345678"}
-        user1 = create_user(data1)
-
-        # Create second user
-        data2 = {"email": "beth@email.com",
-                 "username": "Beth",
-                 "password": "12345678"}
-        user2 = create_user(data2)
-
-        # Create new chat and add first user to it
-        chat_data1 = {"chat_name": "Chat 1",
-                      "chat_passkey": "",
-                      "users": [user1["id"]]}
-        chat1 = create_chat(chat_data1, user2["header"])
-
-        # Create second chat
-        chat_data2 = {"chat_name": "Chat 2",
-                      "chat_passkey": "",
-                      "users": [user1["id"]]}
-        chat2 = create_chat(chat_data2, user2["header"])
-
-        # Get list of user chats
-        get_user(user1["id"], [chat1["id"], chat2["id"]], user1["header"])
-
-        # Delete chats and users
-        delete_chat(chat1['id'], user2["header"], chat_data1)
-        delete_chat(chat2['id'], user2["header"], chat_data2)
-        delete_user(data2, user2["header"])
-        delete_user(data1, user1["header"])
 
 
 if __name__ == "__main__":

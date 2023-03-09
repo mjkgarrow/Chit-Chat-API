@@ -10,9 +10,6 @@ from test_helpers import (create_user,
                           like_message)
 
 
-endpoint = "http://127.0.0.1:8002"
-
-
 class Test_message_endpoints(unittest.TestCase):
 
     def test_create_messages(self):

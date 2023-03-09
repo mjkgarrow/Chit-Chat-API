@@ -6,10 +6,8 @@ from test_helpers import (create_user,
                           delete_chat,
                           update_chat,
                           join_chat,
-                          leave_chat)
-
-
-endpoint = "http://127.0.0.1:8002"
+                          leave_chat,
+                          endpoint)
 
 
 class Test_chat_endpoints(unittest.TestCase):

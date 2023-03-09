@@ -4,9 +4,11 @@ import jwt
 from dotenv import load_dotenv
 
 load_dotenv()
-
 secret_key = os.getenv("SECRET_KEY")
-endpoint = "http://127.0.0.1:8002"
+
+load_dotenv('../.flaskenv')
+port = os.environ.get('FLASK_RUN_PORT')
+endpoint = f"http://127.0.0.1:{port}"
 
 
 def create_user(data):
@@ -70,7 +72,7 @@ def get_user(user_id, chat_ids, header):
     assert get_user_chats_response.status_code == 200
     for chat_id in chat_ids:
         assert chat_id in [chat["id"] for chat
-                           in get_user_chats_response.json()]
+                           in get_user_chats_response.json()["chats"]]
 
 
 def create_chat(data, header):
