@@ -5,7 +5,7 @@
 PORT=5000
 
 SUPERUSER=""
-SECRET=""
+SECRET="chit-chat secret key"
 PORT="5000"
 
 # Parse command line arguments
@@ -58,7 +58,7 @@ fi
 # Create .env file
 DB_URL="postgresql+psycopg2://chat_dev:chat_dev@localhost:5432/chit_chat_db"
 cat << EOF > .env
-DATABASE_URL=$DB_URL
+DATABASE_URL="$DB_URL"
 SECRET_KEY="$SECRET"
 EOF
 echo "The .env file has been created using supplied secret key"
