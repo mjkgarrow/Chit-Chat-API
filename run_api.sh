@@ -1,9 +1,9 @@
 #! /bin/bash
 
-
-# Check if superuser role was supplied
-if [ $# -lt 1 ]; then
-  echo "Usage: $0 <PostgreSQL superuser role>"
+# Check if superuser role, API secret and port number were supplied
+if [ $# -lt 3 ]; then
+  echo "Usage: $0 <PostgreSQL superuser role> \
+  <API secret key> <port to run local server>"
   exit 1
 fi
 
@@ -32,6 +32,22 @@ else
   sudo -u $1 psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
   echo "chit_chat_db created and user chat_dev granted all privileges"
 fi
+
+# Create .env file
+DB_URL="postgresql+psycopg2://chat_dev:chat_dev@localhost:5432/chit_chat_db"
+cat << EOF > .env
+DATABASE_URL=$DB_URL
+SECRET_KEY="$2"
+EOF
+echo "The .env file has been created using supplied secret key"
+
+# Create .flaskenv file
+cat << EOF > .flaskenv
+FLASK_APP=main:create_app
+FLASK_DEBUG=True
+FLASK_RUN_PORT=$3
+EOF
+echo "The .flaskenv file has been created"
 
 
 echo "Creating virtual environment and installing requirements"
