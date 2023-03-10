@@ -219,7 +219,7 @@ def get_all_message(message_ids, header):
 
 
 def like_message(message_id, header, user_name, liking):
-    url = endpoint + f"/messages/like/{message_id}"
+    url = endpoint + f"/messages/{message_id}/like"
     like_messages_response = requests.patch(url,
                                             headers=header,
                                             timeout=10)
