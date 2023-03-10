@@ -1,6 +1,5 @@
 from datetime import datetime
 from main import db
-from models.likes import likes_association
 
 
 class Message(db.Model):
