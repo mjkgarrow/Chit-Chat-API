@@ -1,6 +1,5 @@
 from datetime import datetime
-from marshmallow import fields, post_dump
-from marshmallow.validate import Length
+from marshmallow import fields, validate, post_dump
 from main import ma
 from helpers import convert_time_to_local
 
@@ -15,18 +14,22 @@ class ChatSchema(ma.Schema):
                   "users")
 
     # Validate chat name
-    chat_name = ma.String(validate=Length(
-        min=1, max=20, error="Chat name must be 1 to 20 characters "))
+    chat_name = ma.String(validate=[
+        validate.Length(min=1,
+                        max=20,
+                        error="Chat name must be 1 to 20 characters "),
+        validate.Regexp(r"^[\w\s.,;:()'\"&-]+$",
+                        error="Chat name can only contain alphanumeric characters.")])
 
     # Validate passkey
-    chat_passkey = ma.String(validate=Length(
-        max=20, error="Passkey must be less than 20 characters "))
+    chat_passkey = ma.String(validate=validate.Length(max=20,
+                                                      error="Passkey must be less than 20 characters "))
 
     users = fields.List(fields.Nested("UserSchema",
                                       only=("id", "username",)))
 
     # After dump remove nesting and fix datetime string
-    @post_dump(pass_many=True)
+    @ post_dump(pass_many=True)
     def serialise_nested_dict(self, data, many):
         if many:
             for d in data:
@@ -78,13 +81,17 @@ class ValidateChatSchema(ma.Schema):
                   "created_at",
                   "users")
 
-    # Validate chat name
-    chat_name = ma.String(required=True, validate=Length(
-        min=1, max=20, error="Chat name must be 1 to 20 characters."))
-
+    # Validate chat name length and only alphanum and punctuation
+    chat_name = ma.String(validate=[
+        validate.Length(min=1,
+                        max=20,
+                        error="Chat name must be 1 to 20 characters "),
+        validate.Regexp(r"^[\w\s.,;:()'\"&-]+$",
+                        error="Chat name can only contain alphanumeric and some punctuation characters.")])
     # Validate passkey
-    chat_passkey = ma.String(required=True, validate=Length(
-        max=20, error="Passkey must be less than 20 characters."))
+    chat_passkey = ma.String(required=True,
+                             validate=validate.Length(max=20,
+                                                      error="Passkey must be less than 20 characters."))
 
     users = ma.List(ma.Integer(), required=True)
 

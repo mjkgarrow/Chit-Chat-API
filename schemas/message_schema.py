@@ -1,6 +1,5 @@
 from datetime import datetime
-from marshmallow import fields, post_dump
-from marshmallow.validate import Length
+from marshmallow import fields, validate, post_dump
 from main import ma
 from helpers import convert_time_to_local
 
@@ -20,8 +19,13 @@ class MessageSchema(ma.Schema):
                      "user_id")
 
     # Validate message is present and correct length
-    message = ma.String(required=True, validate=Length(
-        max=5000, error="Message is too long, must be under 5000 characters."))
+    message = ma.String(required=True,
+                        validate=[
+                            validate.Length(min=1,
+                                            error="Message empty"),
+                            validate.Length(min=1,
+                                            max=5000,
+                                            error="Message too long, must be under 5000 characters")])
 
     user = fields.Nested("UserSchema",
                          only=("username",))
