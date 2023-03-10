@@ -1,11 +1,11 @@
-from datetime import timezone, timedelta
+from datetime import timedelta
 from flask import Blueprint, jsonify, abort, request
 from flask_jwt_extended import create_access_token
 from marshmallow.exceptions import ValidationError
 from main import db, bcrypt
 from models.users import User
 from schemas.user_schema import user_schema, users_schema, validate_user_schema
-from helpers import validate_user_chat
+from helpers import validate_user_chat, convert_time_to_local
 
 users = Blueprint("users", __name__, url_prefix="/users")
 
@@ -41,8 +41,7 @@ def get_user(**kwargs):
     for chat in user.chats:
         chat_dict = {"id": chat.id,
                      "chat_name": chat.chat_name,
-                     "created_at": chat.created_at.replace(
-                         tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y at %-I:%M:%S %p"),
+                     "created_at": convert_time_to_local(chat.created_at),
                      "message_count": len([message.id for message
                                            in chat.messages]),
                      "users": [user.username for user in chat.users]}

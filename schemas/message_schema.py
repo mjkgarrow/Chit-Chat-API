@@ -1,7 +1,8 @@
-from datetime import timezone, datetime
+from datetime import datetime
 from marshmallow import fields, post_dump
 from marshmallow.validate import Length
 from main import ma
+from helpers import convert_time_to_local
 
 
 class MessageSchema(ma.Schema):
@@ -41,8 +42,8 @@ class MessageSchema(ma.Schema):
             for d in data:
                 # Display date in local time
                 if "created_at" in d:
-                    d["created_at"] = datetime.fromisoformat(d["created_at"]).replace(
-                        tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y at %-I:%M:%S %p")
+                    d["created_at"] = convert_time_to_local(
+                        datetime.fromisoformat(d["created_at"]))
 
                 # Restructure user values to remove nesting
                 if "user" in d:
@@ -67,8 +68,8 @@ class MessageSchema(ma.Schema):
         else:
             # Display date in local time
             if "created_at" in data:
-                data["created_at"] = datetime.fromisoformat(data["created_at"]).replace(
-                    tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y at %-I:%M:%S %p")
+                data["created_at"] = convert_time_to_local(
+                    datetime.fromisoformat(data["created_at"]))
 
             # Restructure user values to remove nesting
             if "user" in data:

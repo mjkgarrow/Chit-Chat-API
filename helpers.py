@@ -1,3 +1,4 @@
+from datetime import timezone, datetime
 from functools import wraps
 from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 from flask import abort, request
@@ -36,6 +37,7 @@ def validate_user_chat(f):
         user = db.session.execute(db.select(User).filter_by(
             id=get_jwt_identity())).scalar()
 
+        # If user can't be found return a 401 error
         if user is None:
             return abort(401, description="Invalid user or chat")
 
@@ -47,6 +49,7 @@ def validate_user_chat(f):
             chat = db.session.execute(db.select(Chat).filter_by(
                 id=kwargs["chat_id"])).scalar()
 
+            # If chat can't be found return a 401 error
             if chat is None:
                 return abort(401, description="Invalid user or chat")
 
@@ -66,6 +69,7 @@ def validate_user_chat(f):
             message = db.session.execute(db.select(Message).filter_by(
                 id=kwargs["message_id"])).scalar()
 
+            # If message can't be found return a 401 error
             if message is None:
                 return abort(401, description="Invalid user or message")
 
@@ -78,3 +82,10 @@ def validate_user_chat(f):
         return f(*args, **kwargs)
 
     return decorator
+
+
+def convert_time_to_local(date):
+    """Convert a UTC datetime object to a local time string"""
+    return date.replace(tzinfo=timezone.utc
+                        ).astimezone(tz=None
+                                     ).strftime("%B %d, %Y at %-I:%M:%S %p")

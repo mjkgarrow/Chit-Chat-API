@@ -1,11 +1,10 @@
-from datetime import timezone, datetime
 from flask import Blueprint, abort, jsonify, request
 from marshmallow.exceptions import ValidationError
 from main import db
 from models.users import User
 from models.messages import Message
 from schemas.message_schema import message_schema, messages_schema
-from helpers import validate_user_chat
+from helpers import validate_user_chat, convert_time_to_local
 
 
 messages = Blueprint("messages", __name__, url_prefix="/messages")
@@ -113,10 +112,6 @@ def get_latest_messages(**kwargs):
             # Get the username of the message creator
             username = db.session.get(User, chat.messages[-1].user_id).username
 
-            # # Only append latest messages from other people
-            # if username == user.username:
-            #     continue
-
             # Get the chat name
             chat_name = next(found_chat.chat_name for found_chat in user.chats
                              if found_chat.id == chat.messages[-1].chat_id)
@@ -126,8 +121,7 @@ def get_latest_messages(**kwargs):
             users = [user.username for user in chat.messages[-1].likes]
 
             # Create local time creation date
-            created_at = chat.messages[-1].created_at.replace(
-                tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y at %-I:%M:%S %p")
+            created_at = convert_time_to_local(chat.messages[-1].created_at)
 
             # Append all details to a latest message dict
             latest_messages.append({"id": chat.messages[-1].id,
@@ -177,6 +171,9 @@ def like_message(**kwargs):
     # Check message exists in db
     message = db.session.execute(db.select(Message).filter_by(
         id=kwargs["like_message_id"])).scalar()
+
+    if message is None:
+        return abort(401, description="Invalid message")
 
     if kwargs["user"] in message.likes:
         message.likes.remove(kwargs["user"])

@@ -5,7 +5,7 @@ from main import db
 from models.chats import Chat
 from models.users import User
 from schemas.chat_schema import chat_schema, chats_schema, validate_chat_schema
-from helpers import validate_user_chat
+from helpers import validate_user_chat, convert_time_to_local
 
 
 chats = Blueprint("chats", __name__, url_prefix="/chats")
@@ -143,8 +143,7 @@ def join_chat(**kwargs):
 
     response = {"id": chat.id,
                 "chat_name": chat.chat_name,
-                "created_at": chat.created_at.replace(
-                    tzinfo=timezone.utc).astimezone(tz=None).strftime("%B %d, %Y at %-I:%M:%S %p"),
+                "created_at": convert_time_to_local(chat.created_at),
                 "message_count": len([message.id for message
                                       in chat.messages]),
                 "users": [user.username for user in chat.users]}

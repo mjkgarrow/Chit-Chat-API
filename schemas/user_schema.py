@@ -1,6 +1,5 @@
 from marshmallow import fields
 from marshmallow.validate import Length, Email
-from flask import jsonify
 from main import ma
 
 
