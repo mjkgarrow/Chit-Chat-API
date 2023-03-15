@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint
 from main import db
 from main import bcrypt
 from models.users import User
@@ -37,9 +37,15 @@ def seed_db():
                  username="Beth",
                  password=bcrypt.generate_password_hash("12345678").decode('utf-8'))
 
+    # Create user instance
+    user3 = User(email="rohan@gmail.com",
+                 username="Rohan",
+                 password=bcrypt.generate_password_hash("12345678").decode('utf-8'))
+
     # Add users to db and commit
     db.session.add(user1)
     db.session.add(user2)
+    db.session.add(user3)
     db.session.commit()
 
     # Create chat instance
@@ -52,7 +58,8 @@ def seed_db():
 
     # Add chats to users
     user1.chats.append(chat1)
-    user2.chats.append(chat2)
+    user2.chats.append(chat1, chat2)
+    user3.chats.append(chat2)
 
     # Commit changes to db
     db.session.commit()
@@ -63,59 +70,17 @@ def seed_db():
     message2 = Message(chat=chat1,
                        user=user2,
                        message="This is so cool!!!!!")
+    message3 = Message(chat=chat2,
+                       user=user3,
+                       message="Hi Beth, how are you?")
+    message4 = Message(chat=chat2,
+                       user=user2,
+                       message="I'm great, just finishing off an assignment.")
 
     db.session.add(message1)
     db.session.add(message2)
+    db.session.add(message3)
+    db.session.add(message4)
     db.session.commit()
 
     print("Tables seeded")
-
-
-@db_commands.cli.command("reset")
-def reset_db():
-    """DROP, CREATE AND SEED TABLES"""
-
-    db.drop_all()
-    db.create_all()
-
-    # Create user instance
-    user1 = User(username="Matt",
-                 password=bcrypt.generate_password_hash("1234").decode('utf-8'))
-
-    # Create user instance
-    user2 = User(username="Beth",
-                 password=bcrypt.generate_password_hash("5678").decode('utf-8'))
-
-    # Add users to db and commit
-    db.session.add(user1)
-    db.session.add(user2)
-    db.session.commit()
-
-    # Create chat instance
-    chat1 = Chat(chat_name="Chat1",
-                 chat_passkey="1234")
-
-    # Create chat instance
-    chat2 = Chat(chat_name="Chat2",
-                 chat_passkey="1234")
-
-    # Add chats to users
-    user1.chats.append(chat1)
-    user1.chats.append(chat2)
-    user2.chats.append(chat1)
-
-    # Commit changes to db
-    db.session.commit()
-
-    message1 = Message(chat=chat1,
-                       user=user1,
-                       message="My first message!")
-    message2 = Message(chat=chat1,
-                       user=user2,
-                       message="This is so cool!!!!!")
-
-    db.session.add(message1)
-    db.session.add(message2)
-    db.session.commit()
-
-    print("Tables reset")

@@ -1,4 +1,3 @@
-from datetime import timezone
 from flask import Blueprint, abort, jsonify, request
 from marshmallow.exceptions import ValidationError
 from main import db

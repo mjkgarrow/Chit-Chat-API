@@ -23,7 +23,8 @@ class ChatSchema(ma.Schema):
 
     # Validate passkey
     chat_passkey = ma.String(validate=validate.Length(max=20,
-                                                      error="Passkey must be less than 20 characters "))
+                                                      error="Passkey must\
+                                                          be less than 20 characters "))
 
     users = fields.List(fields.Nested("UserSchema",
                                       only=("id", "username",)))
@@ -87,11 +88,13 @@ class ValidateChatSchema(ma.Schema):
                         max=20,
                         error="Chat name must be 1 to 20 characters "),
         validate.Regexp(r"^[\w\s.,;:()'\"&-]+$",
-                        error="Chat name can only contain alphanumeric and some punctuation characters.")])
+                        error="Chat name can only contain \
+                            alphanumeric and some punctuation characters.")])
     # Validate passkey
     chat_passkey = ma.String(required=True,
                              validate=validate.Length(max=20,
-                                                      error="Passkey must be less than 20 characters."))
+                                                      error="Passkey must \
+                                                          be less than 20 characters."))
 
     users = ma.List(ma.Integer(), required=True)
 

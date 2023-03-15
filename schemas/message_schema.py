@@ -25,7 +25,8 @@ class MessageSchema(ma.Schema):
                                             error="Message empty"),
                             validate.Length(min=1,
                                             max=5000,
-                                            error="Message too long, must be under 5000 characters")])
+                                            error="Message too long, \
+                                                must be under 5000 characters")])
 
     user = fields.Nested("UserSchema",
                          only=("username",))
