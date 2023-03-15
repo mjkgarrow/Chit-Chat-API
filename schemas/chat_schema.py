@@ -1,5 +1,5 @@
 from datetime import datetime
-from marshmallow import fields, validate, post_dump
+from marshmallow import validate, post_dump
 from main import ma
 from helpers import convert_time_to_local
 
@@ -26,11 +26,11 @@ class ChatSchema(ma.Schema):
                                                       error="Passkey must\
                                                           be less than 20 characters "))
 
-    users = fields.List(fields.Nested("UserSchema",
-                                      only=("id", "username",)))
+    users = ma.List(ma.Nested("UserSchema",
+                              only=("id", "username",)))
 
     # After dump remove nesting and fix datetime string
-    @ post_dump(pass_many=True)
+    @post_dump(pass_many=True)
     def serialise_nested_dict(self, data, many):
         if many:
             for d in data:

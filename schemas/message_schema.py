@@ -1,5 +1,5 @@
 from datetime import datetime
-from marshmallow import fields, validate, post_dump
+from marshmallow import validate, post_dump
 from main import ma
 from helpers import convert_time_to_local
 
@@ -28,14 +28,14 @@ class MessageSchema(ma.Schema):
                                             error="Message too long, \
                                                 must be under 5000 characters")])
 
-    user = fields.Nested("UserSchema",
-                         only=("username",))
+    user = ma.Nested("UserSchema",
+                     only=("username",))
 
-    likes = fields.List(fields.Nested("UserSchema",
-                                      only=("username",)))
+    likes = ma.List(ma.Nested("UserSchema",
+                              only=("username",)))
 
-    chat_name = fields.Nested("ChatSchema",
-                              only=("chat_name",))
+    chat_name = ma.Nested("ChatSchema",
+                          only=("chat_name",))
 
     # Inspiration from dizzyf:
     # https://stackoverflow.com/questions/44162315/convert-object-when-serializing-it

@@ -1,4 +1,4 @@
-from marshmallow import fields, validate
+from marshmallow import validate
 from main import ma
 
 
@@ -33,7 +33,7 @@ class UserSchema(ma.Schema):
                                                           8 and 20 characters."))
 
     # Displays a list of the user's chats
-    chats = fields.List(fields.Nested("ChatSchema"))
+    chats = ma.List(ma.Nested("ChatSchema"))
 
 
 class ValidateUserSchema(ma.Schema):
