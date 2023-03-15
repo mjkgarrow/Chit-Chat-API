@@ -1,7 +1,7 @@
 # Chit-Chat API
 
 Chit-Chat is a CRUD RESTful API built with Flask and running on a PostgreSQL database. Chit-Chat allows users to:
-- create chatrooms with one or more members
+- create public or private chatrooms with one or more members
 - join or leave a chatroom
 - edit the chatroom name (if a member)
 - send messages in a chatroom (if a member)
@@ -9,42 +9,81 @@ Chit-Chat is a CRUD RESTful API built with Flask and running on a PostgreSQL dat
 
 ## Setup
 
-For first time setup run `run_api.sh`, which creates the database, makes a virtual environment, installs requirements and runs the flask API. Use the following flags and arguments:
+If using Mac, for first time setup run `run_api.sh`. This creates the database, makes a virtual environment, installs requirements and runs the flask API. Use the following flags and arguments:
 
 
-| Flag | Required | Argument    | Defaul value             | Description                                                                     |
-| ---- | -------- | ----------- | ------------------------ | ------------------------------------------------------------------------------- |
-| -u   | Yes      | Superuser   | None                     | The PostgreSQL superuser to log in to the `psql` terminal and create a database |
-| -s   | Optional | API_secret  | `"chit-chat secret key"` | A secret key of your choice (this will determine the JWT hashing signature)     |
-| -p   | Optional | Port_number | `5000`                   | The port to run the local server on, optional (default is 5000)                 |
+| Flag | Required | Argument    | Defaul value           | Description                                                                     |
+| ---- | -------- | ----------- | ---------------------- | ------------------------------------------------------------------------------- |
+| -u   | Yes      | Superuser   | None                   | The PostgreSQL superuser to log in to the `psql` terminal and create a database |
+| -s   | Optional | API_secret  | "chit-chat secret key" | A secret key of your choice (this will determine the JWT hashing signature)     |
+| -p   | Optional | Port_number | 5000                   | The port to run the local server on                                             |
 
 
 **_Example:_**
 
 ```
-./run_api.sh -u Matt -s "super secret key" -p 8000
+./run_api.sh -u postgres -s "super secret key" -p 8000
 ```
 
-If the virtual environment is activated and requirements installed already (and .env and .flaskenv set up), you can run the local Flask server using:
+`run_api.sh` can be run again to start the server, though **_WARNING_** it will drop all tables and restart the server.
 
+For other operating systems, or for a manual approach follow these steps:
+
+1. Open the PostgreSQL shell, providing it with a username (the default is `postgres`):
 ```
+sudo -u postgres psql
+```
+2. Create PostgreSQL database called `chit_chat_db`:
+```sql
+CREATE DATABASE chit_chat_db;
+```
+3. Create a PostgreSQL user called `chat_dev` with the password `chat_dev`:
+```sql
+CREATE USER chat_dev WITH PASSWORD 'chat_dev';
+```
+4. Grant the user access to the chit_chat_db and then quit the psql shel:
+```sql
+GRANT ALL PRIVILEGES ON DATABASE chit_chat_db TO chat_dev;
+\q
+```
+5. Navigate to the app src folder and create .env and .flaskenv files with necessary info, change the `SECRET_KEY` to your own choice:
+```bash
+echo 'DATABASE_URL="postgresql+psycopg2://chat_dev:chat_dev@localhost:5432/chit_chat_db"\nSECRET_KEY="super secret key"' > .env
+echo "FLASK_APP=main:create_app\nFLASK_DEBUG=True\nFLASK_RUN_PORT=5000"  > .flaskenv
+```
+6. Create virtual environment, activate it and install requirements:
+```
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+7. Create tables, seed data, run application:
+```
+flask db create
+flask db seed
 flask run
 ```
 
-Here are some CLI commands to manage the database:
+Here are the CLI commands to manage the database:
 
-```bash
-flask db drop       # To drop tables from db
-flask db create     # To create tables in db
-flask db seed       # To seed db with some data
 ```
-`run_api.sh` can be run again to start the server, though **_WARNING_** it will drop all tables and restart the server.
+flask db drop       # drop tables from db
+flask db create     # create tables in db
+flask db seed       # seed db with some data
+```
+
+If using Mac you can also run the `run_drop_db.sh` script to delete the PostgreSQL database and user from your system, just provide it with a psql superuser argument, eg:
+
+```
+./run_drop_db postgres
+```
+<br>
+<br>
 
 ## API endpoints documentation
 
-There are 15 endpoints in the Chit-Chat API:
+There are 20 endpoints in the Chit-Chat API.
 
-<br>
 <p style="text-align: center; font-size: 20px; color:white;font-weight:bold;">AUTHENTICATION</p>
 
 ### Session
@@ -267,7 +306,7 @@ The `get users` endpoint requires a valid JWT access token in the authorisation 
 
 ### Create user
 
-The `create user` endpoint creates a user in the database and provides a JWT access token that can be used to access protected endpoints.
+The `create user` endpoint creates a user in the database and provides a JWT access token that can be used to access protected endpoints. A user account is needed to join chats, send messages and interact with the API.
 
 **_Endpoint URL_**
 
@@ -566,7 +605,7 @@ The `get chats` endpoint does not require authentication.
 
 ### Create chat
 
-The `create chat` endpoint allows an authenticated user to create a chat and add other users to it. It requires a valid JWT to be submitted in an authorisation header.
+The `create chat` endpoint allows an authenticated user to create a public or private chat and add other users to it. To make a public chat, just set the passkey to an empty string, this means anyone can join the chat or view who the members are (private chats don't reveal the members and require the passkey to join). It requires a valid JWT to be submitted in an authorisation header.
 
 **_Endpoint URL_**
 
