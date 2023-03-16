@@ -3,6 +3,11 @@ from marshmallow import validate, post_dump
 from main import ma
 from helpers import convert_time_to_local
 
+chat_len_error = "Chat name must be 1 to 20 characters."
+chat_regex_error = "Chat name can only contain alphanumeric \
+characters and some punctuation characters."
+pass_len_error = "Passkey must be less than 20 characters."
+
 
 class ChatSchema(ma.Schema):
     class Meta:
@@ -17,14 +22,13 @@ class ChatSchema(ma.Schema):
     chat_name = ma.String(validate=[
         validate.Length(min=1,
                         max=20,
-                        error="Chat name must be 1 to 20 characters "),
+                        error=chat_len_error),
         validate.Regexp(r"^[\w\s.,;:()'\"&-]+$",
-                        error="Chat name can only contain alphanumeric characters.")])
+                        error=chat_regex_error)])
 
     # Validate passkey
     chat_passkey = ma.String(validate=validate.Length(max=20,
-                                                      error="Passkey must\
-                                                          be less than 20 characters "))
+                                                      error=pass_len_error))
 
     users = ma.List(ma.Nested("UserSchema",
                               only=("id", "username",)))
@@ -86,15 +90,13 @@ class ValidateChatSchema(ma.Schema):
     chat_name = ma.String(validate=[
         validate.Length(min=1,
                         max=20,
-                        error="Chat name must be 1 to 20 characters "),
+                        error=chat_len_error),
         validate.Regexp(r"^[\w\s.,;:()'\"&-]+$",
-                        error="Chat name can only contain \
-                            alphanumeric and some punctuation characters.")])
+                        error=chat_regex_error)])
     # Validate passkey
     chat_passkey = ma.String(required=True,
                              validate=validate.Length(max=20,
-                                                      error="Passkey must \
-                                                          be less than 20 characters."))
+                                                      error=pass_len_error))
 
     users = ma.List(ma.Integer(), required=True)
 
