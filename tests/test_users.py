@@ -142,10 +142,10 @@ class Test_user_endpoints(unittest.TestCase):
                                             timeout=10)
 
         assert update_user_response.status_code == 400
-        assert update_user_response.json()[
-            "email"] == ["Incorrect email format."]
-        assert update_user_response.json()[
-            "password"] == ["Incorrect password length, must be between 8 and 20 characters."]
+        assert update_user_response.json()["email"] == [
+            "Incorrect email format."]
+        assert update_user_response.json()["password"] == [
+            "Incorrect password length, must be between 8 and 20 characters."]
 
         delete_user(data, user["header"])
 
