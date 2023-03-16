@@ -1,9 +1,5 @@
 #! /bin/bash
 
-# SUPERUSER=""
-# SECRET=""
-PORT=5000
-
 SUPERUSER=""
 SECRET="chit-chat secret key"
 PORT="5000"
@@ -14,19 +10,19 @@ while getopts ":u:s:p:" opt; do
     u ) SUPERUSER=$OPTARG;;
     s ) SECRET=$OPTARG;;
     p ) PORT=$OPTARG;;
-    \? ) echo "Usage: $0 [-u superuser name] [-s API secret key] [-p port number, default=5000]" >&2; exit 1;;
+    \? ) echo "Usage: $0 [-u superuser name] [-s API secret key] [-p port number, default=5000]"; exit 1;;
   esac
 done
 
 # Require superuser
 if [ -z "$SUPERUSER" ]; then
-  echo "PostgreSQL superuse required. Usage: $0 [-u superuser name] [-s API secret key] [-p port number, default=5000]" >&2
+  echo "PostgreSQL superuse required. Usage: $0 [-u superuser name] [-s API secret key] [-p port number, default=5000]"
   exit 1
 fi
 
 # Inform user secret is insecure
 if [ -z "$SECRET" ]; then
-  echo "Warning, API secret is an insecure empty string" >&2
+  echo "Warning, API secret is an insecure empty string"
 fi
 
 echo "Creating chit_chat database and adding chat_dev user"
@@ -39,7 +35,6 @@ DB_PASS="chat_dev"
 # Check if database already exists, if not then create it
 if [ "$( psql -XtAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" )" = '1' ]; then
     echo "Database already exists"
-    
 else
     # Create the database
     sudo -u $SUPERUSER psql -c "CREATE DATABASE $DB_NAME;"
