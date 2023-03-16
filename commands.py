@@ -54,11 +54,12 @@ def seed_db():
 
     # Create chat instance
     chat2 = Chat(chat_name="Chat2",
-                 chat_passkey="1234")
+                 chat_passkey="")
 
     # Add chats to users
     user1.chats.append(chat1)
-    user2.chats.append(chat1, chat2)
+    user2.chats.append(chat1)
+    user2.chats.append(chat2)
     user3.chats.append(chat2)
 
     # Commit changes to db
