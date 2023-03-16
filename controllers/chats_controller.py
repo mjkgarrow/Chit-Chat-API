@@ -166,6 +166,10 @@ def leave_chat(**kwargs):
     if chat in user.chats:
         user.chats.remove(chat)
 
+    # If a chat has no members, delete it
+    if len(chat.users) == 0:
+        db.session.delete(chat)
+
     # Commit change to db
     db.session.commit()
 
