@@ -124,27 +124,34 @@ class Test_chat_endpoints(unittest.TestCase):
         delete_user(data1, user1["header"])
 
     def test_leave(self):
-        data = {"email": "matt@email.com",
-                "username": "Matt",
-                "password": "12345678"}
-        user = create_user(data)
+        data1 = {"email": "matt@email.com",
+                 "username": "Matt",
+                 "password": "12345678"}
+        user1 = create_user(data1)
+
+        data2 = {"email": "beth@email.com",
+                 "username": "Beth",
+                 "password": "12345678"}
+        user2 = create_user(data2)
 
         # Create new chat
         chat_data = {"chat_name": "Close friends",
                      "chat_passkey": "1234",
-                     "users": []}
-        chat = create_chat(chat_data, user["header"])
+                     "users": [user1["id"], user2["id"]]}
+
+        chat = create_chat(chat_data, user1["header"])
 
         # Leave chat
-        leave_chat(chat['id'], user["header"], chat_data)
+        leave_chat(chat['id'], user1["header"], chat_data)
 
         # Rejoin chat to delete
         join_data = {"chat_passkey": "1234"}
-        join_chat(chat['id'], user["header"], join_data, chat_data)
+        join_chat(chat['id'], user1["header"], join_data, chat_data)
 
         # Delete the chat and users
-        delete_chat(chat['id'], user["header"], chat_data)
-        delete_user(data, user["header"])
+        delete_chat(chat['id'], user1["header"], chat_data)
+        delete_user(data1, user1["header"])
+        delete_user(data2, user2["header"])
 
 
 if __name__ == "__main__":
