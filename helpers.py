@@ -34,10 +34,12 @@ def validate_user_chat(f):
         verify_jwt_in_request()
 
         # Find verified user in db
-        user = db.session.execute(db.select(User).filter_by(
-            id=get_jwt_identity())).scalar()
+        # Return an instance based on the given primary key identifier,
+        # or None if not found
+        user = db.session.get(User, get_jwt_identity())
 
-        # If user can't be found return a 401 error
+        # If user can't be found return a 401 error,
+        # keep message information secure so malicious actor can't use it
         if user is None:
             return abort(401, description="Invalid user or chat")
 
@@ -46,8 +48,10 @@ def validate_user_chat(f):
 
         # Verify chat exists in db
         if "chat_id" in kwargs:
-            chat = db.session.execute(db.select(Chat).filter_by(
-                id=kwargs["chat_id"])).scalar()
+            # Find chat in db
+            # Return an instance based on the given primary key identifier,
+            # or None if not found
+            chat = db.session.get(Chat, kwargs["chat_id"])
 
             # If chat can't be found return a 401 error
             if chat is None:
@@ -66,8 +70,10 @@ def validate_user_chat(f):
 
         # Verify message exists in db
         if "message_id" in kwargs:
-            message = db.session.execute(db.select(Message).filter_by(
-                id=kwargs["message_id"])).scalar()
+            # Find the message in the db
+            # Return an instance based on the given primary key identifier,
+            # or None if not found
+            message = db.session.get(Message, kwargs["message_id"])
 
             # If message can't be found return a 401 error
             if message is None:

@@ -44,9 +44,10 @@ def create_message(**kwargs):
     # Add chat name info through backref
     message.chat_name = {"chat_name": chat.chat_name}
 
+    # Add message to the messages backref in the chat
     chat.messages.append(message)
 
-    # Add message to db and commit
+    # Commit change to chat.messages in the db
     db.session.commit()
 
     # Return deserialised message object
@@ -110,6 +111,8 @@ def get_latest_messages(**kwargs):
         # Check there are actual messages in the chat
         if chat.messages:
             # Get the username of the message creator
+            # The session.get method returns the object
+            # instance based on the primary key
             username = db.session.get(User, chat.messages[-1].user_id).username
 
             # Get the chat name
@@ -169,8 +172,9 @@ def get_all_messages(**kwargs):
 @validate_user_chat
 def like_message(**kwargs):
     # Check message exists in db
-    message = db.session.execute(db.select(Message).filter_by(
-        id=kwargs["like_message_id"])).scalar()
+    # Return an instance based on the given primary key identifier,
+    # or None if not found
+    message = db.session.get(Message, kwargs["like_message_id"])
 
     if message is None:
         return abort(401, description="Invalid message")

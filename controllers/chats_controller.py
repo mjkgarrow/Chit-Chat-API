@@ -15,6 +15,7 @@ def get_chats():
     """GETS ALL CHATS"""
 
     # Query db for all chats
+    # Should return a ScalarResult object (using 'scalars'), which is a single item rather than a collection of items, but can be iterated over
     chats_list = db.session.execute(db.select(Chat)).scalars()
 
     # Return JSON of chats
@@ -43,14 +44,15 @@ def create_chat(**kwargs):
 
     # Create list of users to be added to chat
     users = [kwargs["user"]]
-    for user in chat_data["users"]:
+    for user_id in chat_data["users"]:
         # Don't duplicate the current user in the user list
-        if user == kwargs["user"].id:
+        if user_id == kwargs["user"].id:
             continue
 
         # If user doesn't exist in db, skip
-        user = db.session.execute(db.select(User).filter_by(
-            id=user)).scalar()
+        # Return an instance based on the given primary key identifier,
+        # or None if not found
+        user = db.session.get(User, user_id)
 
         if user is None:
             continue
