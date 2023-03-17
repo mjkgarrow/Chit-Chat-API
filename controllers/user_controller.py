@@ -14,9 +14,11 @@ users = Blueprint("users", __name__, url_prefix="/users")
 def get_users():
     """GETS ALL USERS"""
 
-    # Query database for all Users and dump into schema
-    users_list = users_schema.dump(
-        db.session.execute(db.select(User)).scalars())
+    # Query database for all Users, which returns a scalar result
+    users_records = db.session.execute(db.select(User)).scalars().all()
+
+    # Dump users into a users schema to deserialise the objects
+    users_list = users_schema.dump(users_records)
 
     # Remove chats key from user lists as that is private information
     for user in users_list:
@@ -67,9 +69,9 @@ def create_user():
     except ValidationError as error:
         return jsonify(error.messages), 400
 
-    # Check if user already exists
+    # Check if user already exists, limit response to 1 row and return the first instance
     if db.session.scalars(db.select(User).filter_by(
-            email=user_data["email"]).limit(1)).first():
+            email=user_data["email"])).first():
         return abort(400, description="Email already registered")
 
     # Create a user object to load into db

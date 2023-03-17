@@ -15,8 +15,10 @@ def get_chats():
     """GETS ALL CHATS"""
 
     # Query db for all chats
-    # Should return a ScalarResult object (using 'scalars'), which is a single item rather than a collection of items, but can be iterated over
-    chats_list = db.session.execute(db.select(Chat)).scalars()
+    # Should return a ScalarResult object (using 'scalars'),
+    # which is a single item rather than a collection of items,
+    # but can be iterated over
+    chats_list = db.session.execute(db.select(Chat)).scalars().all()
 
     # Return JSON of chats
     return jsonify(chats_schema.dump(chats_list))
