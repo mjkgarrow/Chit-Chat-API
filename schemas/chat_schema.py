@@ -5,7 +5,7 @@ from helpers import convert_time_to_local
 
 chat_len_error = "Chat name must be 1 to 20 characters."
 chat_regex_error = "Chat name can only contain alphanumeric \
-characters and some punctuation characters."
+and some punctuation characters."
 pass_len_error = "Passkey must be less than 20 characters."
 
 
