@@ -84,6 +84,64 @@ If using Mac you can also run the `run_drop_db.sh` script to delete the PostgreS
 
 There are 20 endpoints in the Chit-Chat API.
 
+<p style="text-align: center; font-size: 20px; color:white;font-weight:bold;">INDEX</p>
+
+### Index
+The `index` endpoint returns basic information about the API
+
+**_Endpoint URL_**
+
+```
+GET /
+```
+
+**Request JSON Parameters**
+
+Not required
+
+**Response**
+
+The response payload will contain a JSON with the following fields:
+
+| Field   | Type   | Description                                                     |
+| ------- | ------ | --------------------------------------------------------------- |
+| message | string | "Welcome to Chit-Chat, a RESTful API for chatting with friends" |
+
+
+**Example Request**
+
+
+```json
+GET / HTTP/1.1
+Host: 127.0.0.1
+Port: 5000
+```
+
+
+**Example Response**
+
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "message":"Welcome to Chit-Chat, a RESTful API for chatting with friends, visit https://github.com/mjkgarrow/Chit-Chat-API for endpoint documentation"
+}
+```
+
+**Error Responses**
+
+The `index` endpoint does not return error responses
+		
+
+**Authentication**
+
+The `index` endpoint does not require authentication.
+
+---
+
+###
+
 <p style="text-align: center; font-size: 20px; color:white;font-weight:bold;">AUTHENTICATION</p>
 
 ### Session
