@@ -4,6 +4,7 @@ from main import db
 from models.chats import Chat
 from models.users import User
 from schemas.chat_schema import chat_schema, chats_schema, validate_chat_schema
+from schemas.message_schema import messages_schema
 from helpers import validate_user_chat, convert_time_to_local
 
 
@@ -155,8 +156,8 @@ def join_chat(**kwargs):
     return jsonify(response)
 
 
-@ chats.patch("/<int:chat_id>/leave")
-@ validate_user_chat
+@chats.patch("/<int:chat_id>/leave")
+@validate_user_chat
 def leave_chat(**kwargs):
     """USER LEAVES A CHAT"""
 
@@ -177,5 +178,36 @@ def leave_chat(**kwargs):
     # Commit change to db
     db.session.commit()
 
-    # Return JSON of left chat
+    # Return JSON of the left chat
     return jsonify(chat_schema.dump(chat))
+
+
+@chats.get("/<int:chat_id>/search")
+@validate_user_chat
+def search_chat(**kwargs):
+    """SEARCH MESSAGES IN A CHAT"""
+
+    # Extract the query string from the URL and cast to lowercase
+    try:
+        search_text = request.args.get('q', type=str)
+    except Exception:
+        return abort(400,
+                     description="usage: api/chats/1/search?q=search_string")
+
+    # Only search if query is provided (otherwise it will match all messages)
+    if not search_text:
+        return abort(400,
+                     description="User must supply a search string.")
+
+    # Loop through chat messages and save messages that contain the query
+    list_of_messages = []
+    for message in kwargs["chat"].messages:
+        if search_text in message.message.lower():
+            list_of_messages.append(message)
+
+    # Tell user no messages were found
+    if len(list_of_messages) == 0:
+        return jsonify(message="No messages found.")
+
+    # Return JSON of the list of messages
+    return jsonify(messages_schema.dump(list_of_messages))

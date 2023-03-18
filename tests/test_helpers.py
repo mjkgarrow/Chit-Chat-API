@@ -234,3 +234,15 @@ def like_message(message_id, header, user_name, liking):
                 "likes"]["users"]
 
     return like_messages_response.json()
+
+
+def search_chat(chat_id, header, search):
+    url = endpoint + f"/chats/{chat_id}/search?q={search}"
+    search_chat_response = requests.get(url,
+                                        headers=header,
+                                        timeout=10)
+
+    assert search_chat_response.status_code == 200
+    assert search in search_chat_response.json()[0]["message"]
+
+    return search_chat_response.json()
