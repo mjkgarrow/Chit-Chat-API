@@ -1042,6 +1042,87 @@ The `leave chat` endpoint may return the following error responses:
 
 The `leave chat` endpoint requires a valid JWT access token in the authorisation header.
 
+### Search chat
+
+The `search chat` endpoint searches all the messages in a chat that the authenticated user is a member of, based on a query string provided in the URL. Must send a valid chat_id int in the request url. User can search for any string character, it will be cast to lowercase and searched within the messages.
+
+**_Endpoint URL_**
+
+```
+GET /chats/<chat_id>/search?q=
+```
+
+**Request JSON Parameters**
+
+Not required
+
+**Response**
+
+The response payload will contain a list of JSONs, each  with the following fields:
+
+| Field      | Type   | Description                                                                                                                                       |
+| ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id         | int    | The message ID                                                                                                                                    |
+| message    | string | The message content                                                                                                                               |
+| created_at | string | The date the message was sent                                                                                                                     |
+| users      | string | The username of the message sender                                                                                                                |
+| likes      | dict   | A dict in the form: `{"count": int, "users": list}`, where `count` is the number of likes and `users` is the list of users who liked the message. |
+
+
+**Example Request**
+
+```json
+GET /chats/1/search?q=where%are%you HTTP/1.1
+Host: 127.0.0.1
+Port: 5000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIXVCJ9TJV...r7E20RMHrHDcEfxjoYZgeFONFh7HgQ
+```
+
+**Example Response**
+
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[
+    {
+        "id": 5,
+        "message": "Hey Beth, where are you?",
+        "created_at": "March 18, 2023 at 12:01:35 PM",
+        "user": "Matt",
+        "likes": {
+            "count": 0,
+            "users": []
+        }
+    },
+    {
+        "id": 6,
+        "message": "I'm here! but where are YOU!?",
+        "created_at": "March 18, 2023 at 12:05:35 PM",
+        "user": "Beth",
+        "likes": {
+            "count": 0,
+            "users": []
+        }
+    }
+]
+```
+
+**Error Responses**
+
+The `search chat` endpoint may return the following error responses:
+
+| HTTP Status Code | Error Message | Description                                 |
+| ---------------- | ------------- | ------------------------------------------- |
+| 400              | Bad Request   | "usage: api/chats/1/search?q=search_string" |
+| 400              | Bad Request   | "User must supply a search string."         |
+| 401              | Unauthorised  | Invalid user or chat                        |
+
+
+**Authentication**
+
+The `search chat` endpoint requires a valid JWT access token in the authorisation header.
+
 ---
 
 
