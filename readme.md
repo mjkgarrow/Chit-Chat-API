@@ -57,7 +57,11 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
-7. Create tables, seed data, run application:
+7. To prevent annoying `__pycache__` files being generated run this:
+```
+export PYTHONDONTWRITEBYTECODE=1
+```
+8. Create tables, seed data, run application:
 ```
 flask db create
 flask db seed
